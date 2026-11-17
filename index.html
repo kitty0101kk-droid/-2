@@ -288,6 +288,34 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 .tw{fill:var(--white);stroke:none;animation:tw 2.4s ease-in-out infinite}
 .wv{animation:drift 5s ease-in-out infinite alternate}
 @keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
+.side{position:fixed;top:0;left:0;bottom:0;width:272px;max-width:84vw;z-index:70;background:var(--paper);border-right:3px solid var(--ink);padding:calc(1rem + env(safe-area-inset-top,0px)) .9rem calc(1rem + env(safe-area-inset-bottom,0px));overflow-y:auto;transform:translateX(-104%);transition:transform .3s var(--bounce);display:flex;flex-direction:column;gap:.6rem}
+body.sideopen .side{transform:none}
+.side-scrim{position:fixed;inset:0;z-index:65;background:rgba(62,58,57,.38);display:none}
+body.sideopen .side-scrim{display:block}
+.side-h{display:flex;align-items:center;gap:.5rem}
+.side-h h2{flex:1;font-size:1.25rem;font-weight:400}
+.side .st{display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;border:3px solid var(--ink);border-radius:18px;background:var(--white);padding:.4rem .7rem;box-shadow:0 3px 0 var(--ink);line-height:1.3}
+.side .st[aria-selected="true"]{background:var(--yellow)}
+.st .e{font-size:1.6rem;flex:none}
+.st b{font-weight:400;overflow-wrap:anywhere;display:block}
+.st small{display:block;font-size:.75rem;color:var(--ink-soft)}
+.side .add{width:100%;text-align:center}
+@media (min-width:1024px){
+  body{padding-left:272px}
+  .side{transform:none!important;transition:none;max-width:none}
+  .side-scrim{display:none!important}
+  #sideBtn,.side-close{display:none}
+  .nav.bottom{left:272px}
+  #toast{left:calc(50% + 136px)}
+  .wrap{max-width:1120px}
+  main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;gap:2.2rem 2rem;align-items:start}
+  main>#top,main>#days,main>#transit,main>#foot,main>.hint{grid-column:1/-1}
+  .hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:stretch}
+  .hero .hero-ill,.hero .cover-img{border-bottom:0;border-right:3px solid var(--ink);align-self:start}
+  .hero .cover-img{height:100%;aspect-ratio:auto;min-height:300px}
+  .hero-body{justify-content:center}
+  .tl-i{grid-template-columns:4rem 22px minmax(0,1fr)}
+}
 .sun-rays{transform-box:fill-box;transform-origin:center;animation:spin 40s linear infinite}
 .sun-core{transform-box:fill-box;transform-origin:center;animation:breathe 4s ease-in-out infinite}
 .cloud{animation:drift 9s ease-in-out infinite alternate}
@@ -320,8 +348,11 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 </head>
 <body>
 
+<aside id="side" class="side" aria-label="旅程選單"></aside>
+<div id="sideScrim" class="side-scrim" data-act="side-close"></div>
 <header class="nav" id="navbar">
   <div class="nav-in wrap">
+    <button id="sideBtn" class="btn sm" type="button" data-act="side-open" aria-label="開啟旅程選單" style="flex:none;margin-bottom:3px">☰ 旅程</button>
     <nav id="nav" aria-label="頁面章節">
       
     </nav>
@@ -332,7 +363,6 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 
 <main class="wrap">
   <div class="hint edit-only" role="note">編輯中：點 ✎ 修改、＋ 新增，改完按右上角「完成」。刪除後可以按「復原」。修改會即時同步給其他人。</div>
-  <section id="tripbar"></section>
   <section id="top"></section>
   <section id="flights" class="sec"></section>
   <section id="days" class="sec"></section>
@@ -688,6 +718,7 @@ function coverSheet(){
   });
   function pk(a){return a[Math.floor(Math.random()*a.length)]}
 }
+document.addEventListener('keydown',e=>{if(e.key==='Escape')document.body.classList.remove('sideopen')});
 $('#covInput').addEventListener('change',async e=>{
   const f=e.target.files[0];e.target.value='';if(!f)return;
   toast('封面處理中…');
@@ -926,9 +957,9 @@ function tplData(c,title,dep,back){
     todoCats:[...new Set(T.todo.map(x=>x[0]))],todos:T.todo.map(x=>pk(...x)),prep:[...BP,...T.prep].map(li),pack:[...BK,...T.pack].map(x=>pk(...x))});
 }
 function renderTrips(){
-  $('#tripbar').innerHTML=`<div class="daytabs" role="tablist" aria-label="旅程分頁">${ROOT.trips.map(t=>`<button type="button" class="dt tr" role="tab" aria-selected="${t.id===curTrip().id}" data-act="trip" data-id="${t.id}"><b>${(CT[t.country]||CT.其他).e}</b><small>${esc(t.name)}</small></button>`).join('')}<button type="button" class="dt addday" data-act="add-trip" aria-label="新增旅程">＋</button></div>`;
+  $('#side').innerHTML=`<div class="side-h"><h2>🧳 我的旅程</h2><button type="button" class="mini side-close" data-act="side-close" aria-label="收合選單">✕</button></div>${ROOT.trips.map(t=>`<button type="button" class="st" role="tab" aria-selected="${t.id===curTrip().id}" data-act="trip" data-id="${t.id}"><span class="e">${(CT[t.country]||CT.其他).e}</span><span><b>${esc(t.name)}</b><small>${esc(t.country)}</small></span></button>`).join('')}<button type="button" class="add" data-act="add-trip">＋ 新增旅程</button>`;
 }
-function switchTrip(id){setAct(id);S=curTrip().data;ui.day=ui.tday=null;renderAll();scrollTo({top:0})}
+function switchTrip(id){document.body.classList.remove('sideopen');setAct(id);S=curTrip().data;ui.day=ui.tday=null;renderAll();scrollTo({top:0})}
 function addTrip(){
   const cs=Object.keys(CT);
   openForm({title:'新增旅程',fields:[{key:'name',label:'分頁名稱',req:true,ph:'例如：首爾 4 天'},{key:'country',label:'國家（會套用對應範本）',type:'select',options:cs},{key:'dep',label:'出發日期',type:'date',half:true},{key:'back',label:'回程日期',type:'date',half:true}],values:{country:'日本'},
@@ -1081,8 +1112,10 @@ document.addEventListener('click',e=>{
   const a=t.dataset.act,id=t.dataset.id;
   switch(a){
     case 'day':ui.day=id;renderDays(true);break;
+    case 'side-open':document.body.classList.add('sideopen');break;
+    case 'side-close':document.body.classList.remove('sideopen');break;
     case 'trip':switchTrip(id);break;
-    case 'add-trip':if(!ui.unlocked){askPw(addTrip);break}addTrip();break;
+    case 'add-trip':document.body.classList.remove('sideopen');if(!ui.unlocked){askPw(addTrip);break}addTrip();break;
     case 'del-trip':delTrip();break;
     case 'cover':coverSheet();break;
     case 'add-day':addDay();break;
