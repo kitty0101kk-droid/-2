@@ -193,7 +193,9 @@ li.done .txt{color:var(--ink-soft);text-decoration:line-through;text-decoration-
 .box.boing{animation:boing .5s var(--bounce)}
 .addrow{display:flex;gap:.5rem;flex-wrap:wrap;padding:.6rem 1rem 1rem;border-top:3px dashed var(--ink)}
 .addrow input{flex:1 1 9rem;min-width:0;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:.2rem .9rem}
-.addrow input[name="cat"]{flex:0 1 6.5rem}
+.addrow input[name="cat"]{flex:0 1 7rem}
+.addrow select{flex:0 1 8.5rem;min-width:0;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:.2rem .9rem}
+.mk{flex:none;border:2px solid var(--ink);border-radius:999px;background:var(--blue);padding:0 .6rem;font-size:.8rem;line-height:1.6;margin-left:.2rem;white-space:nowrap}
 .listcard{overflow:hidden}
 .nothing{padding:.9rem 1rem 0;color:var(--ink-soft);font-size:.9rem}
 .rows li{flex-wrap:wrap}
@@ -610,7 +612,13 @@ const ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
 const nl=s=>esc(s);
 const asUrl=a=>{const s=String(a||'').trim();if(!s||/\s/.test(s))return '';if(/^https?:\/\//i.test(s))return s;if(/^(www\.)?(maps\.app\.goo\.gl|goo\.gl\/maps|google\.[a-z.]+\/maps|maps\.google\.[a-z.]+)/i.test(s))return 'https://'+s;return ''};
 const mapUrl=a=>asUrl(a)||'https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(a);
-const placeText=x=>asUrl(x.addr)?x.title:(x.addr||x.title);
+const urlPlace=u=>{try{const x=new URL(u);let h=x.href;try{h=decodeURIComponent(h)}catch(e){}
+  let m=h.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);if(m)return m[1]+','+m[2];
+  m=x.pathname.match(/\/(?:place|search)\/([^/@]+)/);if(m){let n=m[1].replace(/\+/g,' ');try{n=decodeURIComponent(n)}catch(e){}if(n.trim())return n.trim()}
+  for(const k of ['destination','daddr','query','q']){const v=x.searchParams.get(k);if(v)return v}
+  m=x.pathname.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);if(m)return m[1]+','+m[2];
+}catch(e){}return ''};
+const placeText=x=>{const u=asUrl(x.addr);return u?(urlPlace(u)||x.title):(x.addr||x.title)};
 const addrShow=a=>{const u=asUrl(a);if(!u)return a;try{return '地圖連結（'+new URL(u).hostname.replace(/^www\./,'')+'）'}catch(e){return a}};
 const mapBtn=a=>`<a class="btn sm maplink" href="${esc(mapUrl(a))}" target="_blank" rel="noopener">開啟地圖</a>`;
 const TR={'飛機':'bg-b','電車':'bg-g','新幹線':'bg-c','地鐵':'bg-g','巴士':'bg-y','計程車':'bg-y','租車':'bg-y','渡輪':'bg-b','步行':'bg-w','其他':''};
@@ -860,19 +868,26 @@ const LISTS={
   prep:{key:'prep',h:'出發前清單',sub:'出發前要處理的事，一項一項打勾',ph:'新增一項，例如：確認護照效期'},
   pack:{key:'pack',h:'行李清單',sub:'依分類整理，打包時逐項勾掉',ph:'物品，例如：充電線',cat:true}
 };
+const LIST_PERUSER={prep:1,pack:1};
+const TAGS={'kitty0101kk@gmail.com':'猴子有帶','chichimeow0212@gmail.com':'猴子有帶'}; // 對方有勾選時，顯示在我這邊的標籤
+const meEmail=()=>ui.unlocked&&ui.user&&ui.user.email?ui.user.email.toLowerCase():'';
+const isOn=(lid,i)=>{if(!LIST_PERUSER[lid]||!i.by)return !!i.done;const m=meEmail();return m?!!i.by[m]:Object.values(i.by).some(Boolean)};
+const tagHtml=(lid,i)=>{const m=meEmail();if(!LIST_PERUSER[lid]||!i.by||!m)return '';const t=[...new Set(EDITORS.map(e=>e.toLowerCase()).filter(e=>e!==m&&i.by[e]).map(e=>TAGS[e]||'有帶'))];return t.map(x=>`<span class="mk">${esc(x)}</span>`).join('')};
 function renderList(id){
-  const L=LISTS[id],items=S[L.key],done=items.filter(i=>i.done).length,pct=items.length?Math.round(done/items.length*100):0;
-  const row=i=>`<li class="${i.done?'done':''}${phSel===i.id?' sel':''}" data-item="${i.id}" data-list="${id}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${i.done?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span></label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
+  const L=LISTS[id],items=S[L.key],done=items.filter(i=>isOn(id,i)).length,pct=items.length?Math.round(done/items.length*100):0;
+  const row=i=>`<li class="${isOn(id,i)?'done':''}${phSel===i.id?' sel':''}" data-item="${i.id}" data-list="${id}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${isOn(id,i)?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span>${tagHtml(id,i)}</label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
   let body;
   if(!items.length)body='<p class="nothing">還沒有項目，編輯模式下可以從下方加入第一項。</p>';
   else if(L.cat){
     const cats=[];items.forEach(i=>{const c=i.cat||'其他';if(!cats.includes(c))cats.push(c)});
     body=cats.map(c=>`<div class="group"><h3>${esc(c)}</h3><ul class="rows">${items.filter(i=>(i.cat||'其他')===c).map(row).join('')}</ul></div>`).join('');
   }else body=`<div class="group"><ul class="rows">${items.map(row).join('')}</ul></div>`;
-  const cats=[...new Set(items.map(i=>i.cat).filter(Boolean))];
+  const cats=[...new Set(items.map(i=>i.cat).filter(Boolean).concat(id==='todo'?(S.todoCats||[]):[]))];
+  const sel=cats.includes(ui.lastCat)?ui.lastCat:(cats[0]||'__new');
+  const catUi=`<select name="catsel" class="catsel" aria-label="分類">${cats.map(c=>`<option value="${esc(c)}"${c===sel?' selected':''}>${esc(c)}</option>`).join('')}<option value="__new"${sel==='__new'?' selected':''}>＋ 新增分類…</option></select><input name="cat" placeholder="輸入新分類" aria-label="新分類"${sel==='__new'?'':' hidden'}>`;
   $('#'+id).innerHTML=secHead(id,L.h,L.sub)+
   `<div class="prog"><div class="track" aria-hidden="true"><div class="bar" style="width:${pct}%"></div></div><span>${done} / ${items.length}${items.length&&done===items.length?' 全部完成！':''}</span></div>
-  <div class="card listcard">${body}<form class="addrow edit-only" data-add="${id}" autocomplete="off">${L.cat?`<input name="cat" list="cats" placeholder="分類" aria-label="分類" value="${esc(ui.lastCat)}"><datalist id="cats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`:''}<input name="text" placeholder="${esc(L.ph)}" aria-label="新增項目"><button class="btn primary" type="submit">加入</button></form></div>`;
+  <div class="card listcard">${body}<form class="addrow edit-only" data-add="${id}" autocomplete="off">${L.cat?catUi:''}<input name="text" placeholder="${esc(L.ph)}" aria-label="新增項目"><button class="btn primary" type="submit">加入</button></form></div>`;
   if(id==='todo')hydratePhotos($('#todo'));
 }
 function phStrip(listId,i){
@@ -1131,8 +1146,12 @@ function editTrip(){
 }
 function editListItem(listId,id){
   const L=LISTS[listId],x=find(S[L.key],id);if(!x)return;
-  const fields=[{key:'text',label:'項目',req:true}].concat(L.cat?[{key:'cat',label:'分類',list:'cats'}]:[]);
-  openForm({title:'編輯項目',fields,values:x,onSave:v=>mutate(()=>Object.assign(x,v))});
+  let fields=[{key:'text',label:'項目',req:true}];
+  if(L.cat){
+    const cats=[...new Set(S[L.key].map(i=>i.cat||'其他').concat(listId==='todo'?(S.todoCats||[]):[]))];
+    fields=fields.concat([{key:'cat',label:'分類（選曾用過的）',type:'select',options:cats},{key:'newcat',label:'或輸入新分類（選填，會取代上面的選擇）'}]);
+  }
+  openForm({title:'編輯項目',fields,values:{...x,cat:x.cat||'其他'},onSave:v=>mutate(()=>{const nc=(v.newcat||'').trim();if(L.cat)v.cat=nc||v.cat;delete v.newcat;Object.assign(x,v)})});
 }
 function backup(){
   const json=JSON.stringify(ROOT);let armed=false;
@@ -1192,10 +1211,18 @@ document.addEventListener('change',e=>{
   const c=e.target.closest('input[data-list]');if(!c)return;
   if(!ui.unlocked){c.checked=!c.checked;return}
   const L=LISTS[c.dataset.list],x=find(S[L.key],c.dataset.id);if(!x)return;
-  x.done=c.checked;save();renderList(c.dataset.list);
+  const me=meEmail();
+  if(LIST_PERUSER[c.dataset.list]&&me){x.by=x.by||{};x.by[me]=c.checked;x.done=Object.values(x.by).some(Boolean)}
+  else x.done=c.checked;
+  save();renderList(c.dataset.list);
   const b=$(`[data-box="${x.id}"]`),inp=$(`input[data-id="${x.id}"]`);
-  if(b&&x.done)b.classList.add('boing');
+  if(b&&c.checked)b.classList.add('boing');
   inp&&inp.focus({preventScroll:true});
+});
+document.addEventListener('change',e=>{
+  const s=e.target.closest&&e.target.closest('select.catsel');if(!s)return;
+  const inp=s.form.elements.cat;inp.hidden=s.value!=='__new';
+  if(inp.hidden)ui.lastCat=s.value;else inp.focus();
 });
 document.addEventListener('submit',e=>{
   const f=e.target.closest('form[data-add]');if(!f)return;
@@ -1204,7 +1231,7 @@ document.addEventListener('submit',e=>{
   const id=f.dataset.add,L=LISTS[id],text=f.elements.text.value.trim();
   if(!text){f.elements.text.focus();return}
   const o={id:uid(),text,done:false};
-  if(L.cat){o.cat=(f.elements.cat.value.trim()||'其他');ui.lastCat=o.cat}
+  if(L.cat){const sv=f.elements.catsel.value,cv=sv==='__new'?f.elements.cat.value.trim():sv;o.cat=cv||'其他';ui.lastCat=o.cat}
   S[L.key].push(o);save();renderList(id);$(`#${id} input[name="text"]`).focus({preventScroll:true});
 });
 document.addEventListener('change',e=>{
