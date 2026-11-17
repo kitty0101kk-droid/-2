@@ -99,6 +99,16 @@ main{padding-top:1.2rem;padding-bottom:calc(3rem + env(safe-area-inset-bottom,0p
 .hero h1{font-size:clamp(1.7rem,7.4vw,2.5rem);line-height:1.25;font-weight:400;text-wrap:balance}
 .tagline{color:var(--ink-soft)}
 .cd-label{font-size:.85rem;color:var(--ink-soft)}
+.clk-h{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+.clk-h small{font-size:.85rem;color:var(--ink-soft)}
+.clk{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
+.clk.one{grid-template-columns:1fr}
+.clk-c{border:3px solid var(--ink);border-radius:18px;padding:.4rem .7rem .35rem;min-width:0;background:var(--yellow)}
+.clk-c.tw{background:var(--blue)}
+.clk-c small{display:block;font-size:.8rem}
+.clk-c b{display:block;font-weight:400;font-size:clamp(1.3rem,6.2vw,1.8rem);line-height:1.2;font-variant-numeric:tabular-nums}
+.clk-c em{display:block;font-style:normal;font-size:.78rem;color:var(--ink-soft)}
+.clk-diff{grid-column:1/-1;font-size:.8rem;color:var(--ink-soft);margin-top:-.1rem}
 .cd{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
 .cd-t{border:3px solid var(--ink);border-radius:18px;text-align:center;padding:.4rem .2rem .3rem;min-width:0}
 .cd-t b{display:block;font-weight:400;font-size:clamp(1.5rem,7.5vw,2.2rem);line-height:1.15;font-variant-numeric:tabular-nums}
@@ -482,7 +492,7 @@ function normalize(o){
   if(!o||typeof o!=='object'||!o.trip) return null;
   const arr=k=>Array.isArray(o[k])?o[k]:[];
   const fix=a=>a.map(x=>({...x,id:x.id||uid()}));
-  return {sample:!!o.sample,cover:{mode:'scene',style:'classic',seed:1,...(o.cover||{})},trip:{title:'',tagline:'',depart:'',back:'',...o.trip},flights:fix(arr('flights')),
+  return {sample:!!o.sample,cover:{mode:'scene',style:'classic',seed:1,...(o.cover||{})},trip:{title:'',tagline:'',depart:'',back:'',tz:'',...o.trip},flights:fix(arr('flights')),
     days:arr('days').map(d=>({...d,id:d.id||uid(),items:fix(Array.isArray(d.items)?d.items:[])})),
     hotels:fix(arr('hotels')),todos:fix(arr('todos')),todoCats:Array.isArray(o.todoCats)?o.todoCats.slice():[...new Set(arr('todos').map(i=>i.cat||'未分類'))],prep:fix(arr('prep')),pack:fix(arr('pack'))};
 }
@@ -618,7 +628,8 @@ const urlPlace=u=>{try{const x=new URL(u);let h=x.href;try{h=decodeURIComponent(
   for(const k of ['destination','daddr','query','q']){const v=x.searchParams.get(k);if(v)return v}
   m=x.pathname.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);if(m)return m[1]+','+m[2];
 }catch(e){}return ''};
-const placeText=x=>{const u=asUrl(x.addr);return u?(urlPlace(u)||x.title):(x.addr||x.title)};
+/* 查看路線：有填「地址/網址」就直接用它當出發地／目的地（網址能解析出座標或地名就用精準值，解析不出來（如短網址）就整條網址原樣帶入）；沒填才用地點名稱 */
+const placeText=x=>{const raw=String(x.addr||'').trim();if(!raw)return x.title||'';const u=asUrl(raw);return u?(urlPlace(u)||u):raw};
 const addrShow=a=>{const u=asUrl(a);if(!u)return a;try{return '地圖連結（'+new URL(u).hostname.replace(/^www\./,'')+'）'}catch(e){return a}};
 const mapBtn=a=>`<a class="btn sm maplink" href="${esc(mapUrl(a))}" target="_blank" rel="noopener">開啟地圖</a>`;
 const TR={'飛機':'bg-b','電車':'bg-g','新幹線':'bg-c','地鐵':'bg-g','巴士':'bg-y','計程車':'bg-y','租車':'bg-y','渡輪':'bg-b','步行':'bg-w','其他':''};
@@ -765,12 +776,40 @@ function renderHero(){
     <h1>${esc(t.title||'我的旅行')}</h1>
     ${t.tagline?`<p class="tagline">${esc(t.tagline)}</p>`:''}
     <div class="cd-label" id="cdl">出發倒數</div><div class="cd" id="cd" role="timer" aria-live="off"></div>
+    <div id="clock"></div>
     <button type="button" class="btn sm edit-only" style="align-self:flex-start" data-act="edit-trip">✎ 修改標題與日期</button>
     <div class="edit-only" style="display:flex;gap:.5rem;flex-wrap:wrap"><button type="button" class="btn sm" data-act="cover">🎨 更換封面</button><button type="button" class="btn sm danger" data-act="del-trip">🗑 刪除此旅程</button></div>
   </div></div>`;
   hydratePhotos($('#top'));tick();
 }
+/* ---------- 當地時間／台灣時間（可隱藏，隱藏狀態只記在這台裝置） ---------- */
+const TZ_OPTS={'依國家自動':'', '日本・韓國（東京/首爾）':'Asia/Tokyo','台灣':'Asia/Taipei','泰國・越南（曼谷/胡志明）':'Asia/Bangkok','新加坡・馬來西亞':'Asia/Singapore','香港・中國':'Asia/Hong_Kong','歐洲中部（巴黎/羅馬）':'Europe/Paris','英國（倫敦）':'Europe/London','美西（洛杉磯）':'America/Los_Angeles','美東（紐約）':'America/New_York','夏威夷':'Pacific/Honolulu','澳洲東部（雪梨）':'Australia/Sydney'};
+const CTRY_TZ={日本:'Asia/Tokyo',韓國:'Asia/Seoul',泰國:'Asia/Bangkok',越南:'Asia/Ho_Chi_Minh',新加坡:'Asia/Singapore',歐洲:'Europe/Paris',美國:'America/Los_Angeles'};
+const tripTz=()=>{const t=(S.trip&&S.trip.tz)||'';if(TZ_OPTS[t])return TZ_OPTS[t];if(/^[A-Za-z_]+\/[A-Za-z_]+/.test(t))return t;const c=curTrip();return (c&&CTRY_TZ[c.country])||''};
+const tzOff=(tz,d)=>{try{const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone:tz,hourCycle:'h23',year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric'}).formatToParts(d).map(x=>[x.type,x.value]));return (Date.UTC(+p.year,+p.month-1,+p.day,+p.hour%24,+p.minute,+p.second)-Math.floor(d/1000)*1000)/60000}catch(e){return null}};
+const fmtTz=(tz,d)=>{try{const t=new Intl.DateTimeFormat('zh-TW',{timeZone:tz,hourCycle:'h23',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(d);const dt=new Intl.DateTimeFormat('zh-TW',{timeZone:tz,month:'numeric',day:'numeric',weekday:'short'}).format(d);return [t,dt]}catch(e){return ['--:--:--','']}};
+const clockHidden=()=>{try{return localStorage.getItem('tabi-clock-hide')==='1'}catch(e){return false}};
+function toggleClock(){try{localStorage.setItem('tabi-clock-hide',clockHidden()?'0':'1')}catch(e){}clockTick(true)}
+function clockTick(force){
+  const box=$('#clock');if(!box)return;
+  if(clockHidden()){if(box.dataset.m!=='h'||force){box.dataset.m='h';box.innerHTML='<button type="button" class="btn sm" data-act="clock-toggle" aria-pressed="false">🕒 顯示當地／台灣時間</button>'}return}
+  const tz=tripTz(),now=new Date(),same=!tz||tz==='Asia/Taipei';
+  const mode=same?'1':'2';
+  if(box.dataset.m!==mode||force){
+    box.dataset.m=mode;
+    box.innerHTML=`<div class="clk-h"><small>${same?'台灣時間':'旅遊地時間 ／ 台灣時間'}</small><button type="button" class="btn sm" data-act="clock-toggle" aria-pressed="true" aria-label="隱藏時間">隱藏</button></div>
+    <div class="clk${same?' one':''}">${same?'':'<div class="clk-c" id="clkL"><small>旅遊地</small><b></b><em></em></div>'}<div class="clk-c tw" id="clkT"><small>台灣</small><b></b><em></em></div><div class="clk-diff" id="clkD"></div></div>`;
+  }
+  const set=(id,tzz)=>{const c=$(id);if(!c)return;const [t,d]=fmtTz(tzz,now);c.querySelector('b').textContent=t;c.querySelector('em').textContent=d};
+  set('#clkT','Asia/Taipei');
+  if(!same){
+    set('#clkL',tz);
+    const a=tzOff(tz,now),b=tzOff('Asia/Taipei',now),df=$('#clkD');
+    if(df&&a!=null&&b!=null){const m=a-b,h=Math.abs(m)/60;df.textContent=m===0?'與台灣時間相同':`旅遊地${m>0?'比台灣快':'比台灣慢'} ${Number.isInteger(h)?h:h.toFixed(1)} 小時`}
+  }
+}
 function tick(){
+  clockTick();
   const cd=$('#cd');if(!cd)return;
   const dep=new Date(S.trip.depart),now=new Date();
   const back=parseD(S.trip.back);if(back)back.setHours(23,59,59);
@@ -1102,7 +1141,7 @@ function logout(){
 
 /* ---------- 表單定義與動作 ---------- */
 const F={
-  trip:[{key:'title',label:'旅程標題',req:true,ph:'例如：東京・京都 5 日小旅行'},{key:'tagline',label:'一句話',ph:'例如：冬天的東京與京都'},{key:'depart',label:'出發時間（倒數用）',type:'datetime-local',req:true},{key:'back',label:'回程日期',type:'date'}],
+  trip:[{key:'title',label:'旅程標題',req:true,ph:'例如：東京・京都 5 日小旅行'},{key:'tagline',label:'一句話',ph:'例如：冬天的東京與京都'},{key:'depart',label:'出發時間（倒數用）',type:'datetime-local',req:true},{key:'back',label:'回程日期',type:'date'},{key:'tz',label:'旅遊地時區（顯示當地時間用）',type:'select',options:Object.keys(TZ_OPTS)}],
   flight:[{key:'dir',label:'類型',type:'select',options:['去程','回程','轉機','其他']},{key:'airline',label:'航空公司',half:true,ph:'例如：長榮航空'},{key:'no',label:'班次',half:true,ph:'例如：BR 198'},
     {key:'fromCode',label:'出發機場代碼',half:true,req:true,ph:'TPE'},{key:'fromCity',label:'出發地',half:true,ph:'台北桃園'},{key:'toCode',label:'抵達機場代碼',half:true,req:true,ph:'NRT'},{key:'toCity',label:'抵達地',half:true,ph:'東京成田'},
     {key:'date',label:'起飛日期',type:'date',half:true,req:true},{key:'dep',label:'起飛時間',type:'time',half:true,req:true},{key:'arrDate',label:'抵達日期',type:'date',half:true},{key:'arr',label:'抵達時間',type:'time',half:true},
@@ -1193,6 +1232,7 @@ document.addEventListener('click',e=>{
     case 'add-hotel':C.hotel.add();break;
     case 'edit-hotel':C.hotel.edit(id);break;
     case 'edit-trip':editTrip();break;
+    case 'clock-toggle':toggleClock();break;
     case 'edit-li':editListItem(t.dataset.list,id);break;
     case 'del-li':{const L=LISTS[t.dataset.list],x=find(S[L.key],id);if(x)mutate(()=>S[L.key].splice(S[L.key].indexOf(x),1),'已刪除項目',true);break}
     case 'dismiss':S.sample=false;save();renderHero();break;
