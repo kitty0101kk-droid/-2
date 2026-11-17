@@ -322,7 +322,6 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 </main>
 
 <button id="fab" class="fab" type="button" aria-label="顯示選單（可拖曳移動）">☰</button>
-<div id="gate" class="gate"><form id="gf" class="gate-card" novalidate><h1>旅行手帳</h1><p class="mut">請輸入密碼</p><input id="gpw" type="password" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="密碼"><p id="gmsg" role="alert"></p><button class="btn primary" type="submit">進入</button></form></div>
 <div id="toast" role="status" hidden></div>
 <div id="scrim" class="scrim" hidden><div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t"></div></div>
 
@@ -330,8 +329,16 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 (()=>{
 'use strict';
 const KEY='tabi-techo-v1';
-const UKEY='tabi-techo-unlock';
-const PW='0101';
+/* ===== Google 登入與共同編輯設定（請依 README 步驟填入你的 Firebase 設定） ===== */
+const FB={
+  apiKey:'AIzaSyDQXG4KEHd9wC4agSMH6MDOwjYWxJMhn2o',
+  authDomain:'travel-app-f3664.firebaseapp.com',
+  projectId:'travel-app-f3664',
+  appId:'1:15875558910:web:6b9928bb2aa730743cc4af'
+};
+// 允許編輯的 Google 帳號（小寫 email）。留空陣列代表「任何登入的人都能編輯」，不建議。
+const EDITORS=['kitty0101kk@gmail.com','chichimeow0212@gmail.com'];
+const FB_ON=!!FB.apiKey&&!/^填入/.test(FB.apiKey);
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>[...r.querySelectorAll(s)];
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -413,13 +420,13 @@ function save(){
   try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast('這個瀏覽器無法儲存，重新整理後資料會消失。可到頁尾「備份與還原」複製備份。')}}
   push();
 }
-let unlockedInit=false;
-try{unlockedInit=localStorage.getItem(UKEY)==='1'}catch(e){}
-const ui={editing:false,day:null,lastCat:'其他',unlocked:false};
+// unlocked＝可編輯：未設定 Firebase 時為本機模式（直接可編輯）；設定後需用允許名單內的 Google 帳號登入
+const ui={editing:false,day:null,lastCat:'其他',unlocked:!FB_ON,user:null};
+let auth=null,AU=null;
 
 /* ---------- 共同編輯同步 ---------- */
 let dbDoc=null,syncState='local',lastJson='',remoteJson='',deferred=null,pushT=0,firstSnap=true;
-const SYNC_TXT={local:'目前只存在這台裝置（要登入 Claude 並有協作權限才能跨裝置同步）',wait:'同步中…',live:'已連線：所有人的修改會即時同步',ro:'你沒有寫入權限，修改不會同步（需要「協作者」以上權限）',err:'同步失敗，會再自動重試'};
+const SYNC_TXT={local:'尚未連線，目前只存在這台裝置（登入 Google 後可跨裝置同步）',wait:'同步中…',live:'已連線：所有人的修改會即時同步',ro:'這個 Google 帳號沒有編輯權限，修改不會同步',err:'同步失敗，會再自動重試'};
 function setSync(s){
   syncState=s;
   const d=$('#syncDot');if(d){d.dataset.s=s;d.title='同步狀態：'+SYNC_TXT[s];d.setAttribute('aria-label','同步狀態：'+SYNC_TXT[s])}
@@ -465,10 +472,24 @@ function flush(){
   const j=deferred;deferred=null;applyRemote(j);
 }
 async function initSync(){
+  if(!FB_ON){setSync('local');return}
   try{
-    const c=window.claude;if(!c||!c.use)return;
-    const db=await c.use('db');if(!db)return;
-    dbDoc=db.doc('trip/main');
+    const B='https://www.gstatic.com/firebasejs/10.12.2/';
+    const [{initializeApp},A,D]=await Promise.all([import(B+'firebase-app.js'),import(B+'firebase-auth.js'),import(B+'firebase-firestore.js')]);
+    const app=initializeApp(FB);
+    AU=A;auth=A.getAuth(app);
+    A.setPersistence&&A.setPersistence(auth,A.browserLocalPersistence).catch(()=>{});
+    const ref=D.doc(D.getFirestore(app),'trips','main');
+    dbDoc={set:d=>D.setDoc(ref,d),onSnapshot:(ok,er)=>D.onSnapshot(ref,s=>ok({exists:s.exists(),data:()=>s.data()}),er)};
+    A.onAuthStateChanged(auth,u=>{
+      ui.user=u;
+      const em=u&&(u.email||'').toLowerCase();
+      ui.unlocked=!!u&&(!EDITORS.length||EDITORS.map(x=>x.toLowerCase()).includes(em));
+      if(!ui.unlocked&&ui.editing)setEditing(false);
+      renderFoot();
+      if(u&&!ui.unlocked){setSync('ro')}
+      else if(ui.unlocked){setSync('live');push()}
+    });
     setSync('wait');
     const timer=setTimeout(()=>{if(firstSnap)setSync('local')},10000);
     dbDoc.onSnapshot(snap=>{
@@ -704,7 +725,7 @@ function renderList(id){
   <div class="card listcard">${body}<form class="addrow edit-only" data-add="${id}" autocomplete="off">${L.cat?`<input name="cat" list="cats" placeholder="分類" aria-label="分類" value="${esc(ui.lastCat)}"><datalist id="cats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`:''}<input name="text" placeholder="${esc(L.ph)}" aria-label="新增項目"><button class="btn primary" type="submit">加入</button></form></div>`;
 }
 function renderFoot(){
-  $('#foot').innerHTML=`${SVG.cat}<p>旅途愉快！內容會即時同步給所有開啟這個頁面的人；沒連上同步時只會存在這台裝置，換手機或清除資料前，記得先備份。</p><p id="syncTxt"></p><div class="foot-btns"><button type="button" class="btn sm" data-act="backup">備份與還原</button></div>`;
+  $('#foot').innerHTML=`${SVG.cat}<p>旅途愉快！內容會即時同步給所有開啟這個頁面的人；沒連上同步時只會存在這台裝置，換手機或清除資料前，記得先備份。</p><p id="syncTxt"></p>${FB_ON?`<p>${ui.user?'已登入：'+esc(ui.user.email||'')+(ui.unlocked?'':'（無編輯權限）'):'尚未登入 Google'}</p>`:''}<div class="foot-btns">${FB_ON?(ui.user?'<button type="button" class="btn sm" data-act="logout">登出</button>':'<button type="button" class="btn sm" data-act="login">使用 Google 登入</button>'):''}<button type="button" class="btn sm" data-act="backup">備份與還原</button></div>`;
   setSync(syncState);
 }
 function renderAll(){renderHero();renderFlights();renderDays(false);renderTransit();renderHotels();['todo','prep','pack'].forEach(renderList);renderFoot();}
@@ -756,18 +777,25 @@ function setEditing(on){
   const b=$('#editBtn');b.textContent=on?'完成':'編輯';b.classList.toggle('primary',!on);b.classList.toggle('ok',on);b.setAttribute('aria-pressed',on);
 }
 function askPw(cb){
-  openSheet(`<h3 id="sheet-t">輸入編輯密碼</h3><p class="mut">輸入密碼才能編輯、打勾與同步修改。沒有密碼也可以瀏覽。</p><form id="pf" novalidate><label class="fld" for="pw"><span>密碼</span><input id="pw" name="pw" type="password" inputmode="numeric" autocomplete="off" maxlength="12"></label><p class="msg" id="pwmsg" role="alert"></p><div class="sheet-btns"><span class="sp"></span><button type="button" class="btn" data-sheet="close">取消</button><button type="submit" class="btn primary">解鎖</button></div></form>`);
-  $('#pf').addEventListener('submit',ev=>{
-    ev.preventDefault();
-    const inp=$('#pw');
-    if(inp.value.trim()!==PW){$('#pwmsg').textContent='密碼不對，再試一次。';inp.value='';inp.focus();return}
-    ui.unlocked=true;try{localStorage.setItem(UKEY,'1')}catch(e){}
-    closeSheet();renderFoot();push();cb&&cb();
-  });
+  if(ui.unlocked){cb&&cb();return}
+  if(!auth){openSheet(`<h3 id="sheet-t">Google 登入尚未連線</h3><p class="mut">網站還沒有設定 Firebase，或連線載入失敗。請依說明填入設定後重新整理。</p><div class="sheet-btns"><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">知道了</button></div>`);return}
+  if(ui.user){openSheet(`<h3 id="sheet-t">沒有編輯權限</h3><p class="mut">目前登入的帳號是 ${esc(ui.user.email||'')}，不在可編輯名單內。請改用其他 Google 帳號，或請管理者把你加入名單。</p><div class="sheet-btns"><button type="button" class="btn" data-sheet="out">登出</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">關閉</button></div>`,{out:()=>{closeSheet();logout()}});return}
+  openSheet(`<h3 id="sheet-t">登入 Google 帳號</h3><p class="mut">登入後，名單內的帳號就能編輯、打勾，並即時同步給所有人。沒登入也可以瀏覽。</p><p class="msg" id="lgmsg" role="alert"></p><div class="sheet-btns"><span class="sp"></span><button type="button" class="btn" data-sheet="close">取消</button><button type="button" class="btn primary" data-sheet="go">使用 Google 登入</button></div>`,{go:async()=>{
+    try{
+      await AU.signInWithPopup(auth,new AU.GoogleAuthProvider());
+      closeSheet();
+      if(ui.unlocked){cb&&cb()}else toast('這個帳號不在可編輯名單內');
+    }catch(e){
+      const c=(e&&e.code)||'';
+      if(c==='auth/popup-blocked'){try{await AU.signInWithRedirect(auth,new AU.GoogleAuthProvider())}catch(e2){}return}
+      if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
+      const m=$('#lgmsg');if(m)m.textContent=c==='auth/unauthorized-domain'?'這個網址還沒加入 Firebase 的授權網域。':'登入失敗：'+(c||'請再試一次');
+    }
+  }});
 }
-function lockEdit(){
-  ui.unlocked=false;try{localStorage.removeItem(UKEY)}catch(e){}
-  setEditing(false);renderFoot();toast('已鎖定，要編輯需重新輸入密碼');
+function logout(){
+  if(!auth)return;
+  AU.signOut(auth).then(()=>toast('已登出'));
 }
 
 /* ---------- 表單定義與動作 ---------- */
@@ -820,7 +848,7 @@ function editListItem(listId,id){
 }
 function backup(){
   const json=JSON.stringify(S);let armed=false;
-  const need=()=>{if(ui.unlocked)return false;$('#bkmsg').textContent='還原需要編輯權限，請先按右上角「編輯」輸入密碼。';return true};
+  const need=()=>{if(ui.unlocked)return false;$('#bkmsg').textContent='還原需要編輯權限，請先按右上角「編輯」，用 Google 帳號登入。';return true};
   openSheet(`<h3 id="sheet-t">備份與還原</h3><p class="mut">複製下面的文字存起來；要還原時貼回來，按「用這段內容還原」（還原會同步給所有人）。</p><textarea id="bk" rows="7" spellcheck="false" aria-label="備份內容">${esc(json)}</textarea><div class="sheet-btns" style="margin-top:.6rem"><button type="button" class="btn ok" data-sheet="copy">複製備份</button><button type="button" class="btn" data-sheet="imp">用這段內容還原</button></div><div class="sheet-btns"><button type="button" class="btn" data-sheet="reset">還原成範例行程</button><span class="sp"></span><button type="button" class="btn" data-sheet="close">關閉</button></div><p class="msg" id="bkmsg" role="status"></p>`,{
     copy:async()=>{const ok=await copyText($('#bk').value);if(!ok)$('#bk').select();$('#bkmsg').textContent=ok?'已複製。':'請手動複製選取的文字。'},
     imp:()=>{if(need())return;try{const n=normalize(JSON.parse($('#bk').value));if(!n)throw 0;const snap=JSON.stringify(S);closeSheet();S=n;save();renderAll();toast('已還原',()=>{S=normalize(JSON.parse(snap));save();renderAll()})}catch(e){$('#bkmsg').textContent='內容格式不對，請貼上完整的備份文字。'}},
@@ -854,6 +882,8 @@ document.addEventListener('click',e=>{
     case 'del-li':{const L=LISTS[t.dataset.list],x=find(S[L.key],id);if(x)mutate(()=>S[L.key].splice(S[L.key].indexOf(x),1),'已刪除項目',true);break}
     case 'dismiss':S.sample=false;save();renderHero();break;
     case 'backup':backup();break;
+    case 'login':askPw();break;
+    case 'logout':logout();break;
     case 'tday':ui.tday=id;renderTransit();break;
     case 'edit-leg':{const d=find(S.days,t.dataset.day),x=d&&find(d.items,id);if(!x)break;openForm({title:'編輯交通方式',fields:[{key:'tr',label:'交通方式',type:'select',options:TRS},{key:'trNote',label:'搭乘方式備註',type:'textarea',ph:'例如：JR 山手線往新宿，搭 3 站；月台 2 號'}],values:x,onSave:v=>mutate(()=>Object.assign(x,v))});break}
     case 'goto-item':{ui.day=t.dataset.day;renderDays(true);document.getElementById('days').scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'});setTimeout(()=>{const el=document.getElementById('it-'+id),c=el&&el.querySelector('.tl-c');if(c){el.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});c.style.animation='flash 1.6s';setTimeout(()=>{c.style.animation=''},1800)}},reduced()?0:450);break}
@@ -887,7 +917,7 @@ document.addEventListener('change',e=>{
 });
 $('#editBtn').addEventListener('click',()=>{
   if(ui.editing){setEditing(false);return}
-  setEditing(true);
+  if(ui.unlocked)setEditing(true);else askPw(()=>setEditing(true));
 });
 
 /* 選單：移到上方/下方、隱藏、可拖曳的圓形按鈕 */
@@ -958,16 +988,6 @@ addEventListener('scroll',()=>{if(!raf)raf=requestAnimationFrame(()=>{raf=0;spy(
 
 renderAll();spy();
 setInterval(tick,1000);
-/* 開啟網站時要輸入密碼，每次重開都要再輸入 */
-{
-  const gate=$('#gate');document.body.classList.add('lock');
-  $('#gpw').focus({preventScroll:true});
-  $('#gf').addEventListener('submit',e=>{
-    e.preventDefault();const i=$('#gpw');
-    if(i.value.trim()!==PW){$('#gmsg').textContent='密碼不對，再試一次。';i.value='';i.focus();return}
-    ui.unlocked=true;gate.remove();document.body.classList.remove('lock');push();
-  });
-}
 initSync();
 })();
 </script>
