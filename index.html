@@ -196,6 +196,14 @@ li.done .txt{color:var(--ink-soft);text-decoration:line-through;text-decoration-
 .addrow input[name="cat"]{flex:0 1 6.5rem}
 .listcard{overflow:hidden}
 .nothing{padding:.9rem 1rem 0;color:var(--ink-soft);font-size:.9rem}
+.rows li{flex-wrap:wrap}
+.ph-strip{flex:0 0 100%;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;padding:.1rem 0 .3rem 2.4rem}
+body:not(.editing) .ph-strip:not(.has){display:none}
+.ph-th{width:64px;height:64px;padding:0;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--sand);flex:none}
+.ph-th img{display:block;width:100%;height:100%;object-fit:cover}
+img[data-ph]:not([src]){visibility:hidden}
+.ph-add{border:3px dashed var(--ink);border-radius:999px;background:var(--paper);padding:0 .8rem;font-size:.85rem;line-height:1.7}
+.ph-big{display:block;width:100%;max-height:60vh;object-fit:contain;border:3px solid var(--ink);border-radius:16px;background:var(--white);min-height:4rem}
 
 .hotel{overflow:hidden}
 .hotel-h{display:flex;align-items:center;gap:.7rem;background:var(--yellow);border-bottom:3px solid var(--ink);padding:.7rem 1rem}
@@ -322,6 +330,7 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 </main>
 
 <button id="fab" class="fab" type="button" aria-label="顯示選單（可拖曳移動）">☰</button>
+<input id="phInput" type="file" accept="image/*" multiple hidden>
 <div id="toast" role="status" hidden></div>
 <div id="scrim" class="scrim" hidden><div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t"></div></div>
 
@@ -423,6 +432,12 @@ function save(){
 // unlocked＝可編輯：未設定 Firebase 時為本機模式（直接可編輯）；設定後需用允許名單內的 Google 帳號登入
 const ui={editing:false,day:null,lastCat:'其他',unlocked:!FB_ON,user:null};
 let auth=null,AU=null;
+/* 照片：縮圖後存成獨立文件（雲端：Firestore photos 集合；本機模式：localStorage） */
+const phCache=new Map(),phLoading=new Set();
+let PH={
+  set:async(id,d)=>{localStorage.setItem('tabi-photo-'+id,d)},
+  get:async id=>{try{return localStorage.getItem('tabi-photo-'+id)}catch(e){return null}}
+};
 
 /* ---------- 共同編輯同步 ---------- */
 let dbDoc=null,syncState='local',lastJson='',remoteJson='',deferred=null,pushT=0,firstSnap=true;
@@ -479,7 +494,12 @@ async function initSync(){
     const app=initializeApp(FB);
     AU=A;auth=A.getAuth(app);
     A.setPersistence&&A.setPersistence(auth,A.browserLocalPersistence).catch(()=>{});
-    const ref=D.doc(D.getFirestore(app),'trips','main');
+    const fdb=D.getFirestore(app);
+    const ref=D.doc(fdb,'trips','main');
+    PH={
+      set:(id,d)=>D.setDoc(D.doc(fdb,'photos',id),{data:d,at:Date.now()}),
+      get:async id=>{const s=await D.getDoc(D.doc(fdb,'photos',id));return s.exists()?s.data().data:null}
+    };
     dbDoc={set:d=>D.setDoc(ref,d),onSnapshot:(ok,er)=>D.onSnapshot(ref,s=>ok({exists:s.exists(),data:()=>s.data()}),er)};
     A.onAuthStateChanged(auth,u=>{
       ui.user=u;
@@ -712,7 +732,7 @@ const LISTS={
 };
 function renderList(id){
   const L=LISTS[id],items=S[L.key],done=items.filter(i=>i.done).length,pct=items.length?Math.round(done/items.length*100):0;
-  const row=i=>`<li class="${i.done?'done':''}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${i.done?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span></label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span></li>`;
+  const row=i=>`<li class="${i.done?'done':''}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${i.done?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span></label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
   let body;
   if(!items.length)body='<p class="nothing">還沒有項目，編輯模式下可以從下方加入第一項。</p>';
   else if(L.cat){
@@ -723,6 +743,72 @@ function renderList(id){
   $('#'+id).innerHTML=secHead(id,L.h,L.sub)+
   `<div class="prog"><div class="track" aria-hidden="true"><div class="bar" style="width:${pct}%"></div></div><span>${done} / ${items.length}${items.length&&done===items.length?' 全部完成！':''}</span></div>
   <div class="card listcard">${body}<form class="addrow edit-only" data-add="${id}" autocomplete="off">${L.cat?`<input name="cat" list="cats" placeholder="分類" aria-label="分類" value="${esc(ui.lastCat)}"><datalist id="cats">${cats.map(c=>`<option value="${esc(c)}">`).join('')}</datalist>`:''}<input name="text" placeholder="${esc(L.ph)}" aria-label="新增項目"><button class="btn primary" type="submit">加入</button></form></div>`;
+  if(id==='todo')hydratePhotos($('#todo'));
+}
+function phStrip(listId,i){
+  if(listId!=='todo')return '';
+  const ps=i.photos||[];
+  return `<div class="ph-strip${ps.length?' has':''}">${ps.map(p=>`<button type="button" class="ph-th" data-act="ph-view" data-list="${listId}" data-id="${i.id}" data-pid="${p.id}" aria-label="查看照片"><img data-ph="${p.id}" alt="${esc(p.name||'照片')}"></button>`).join('')}<button type="button" class="ph-add edit-only" data-act="ph-add" data-list="${listId}" data-id="${i.id}">📷 新增照片</button></div>`;
+}
+function hydratePhotos(root){
+  $$('img[data-ph]',root||document).forEach(img=>{
+    const id=img.dataset.ph;
+    if(phCache.has(id)){img.src=phCache.get(id);return}
+    if(phLoading.has(id))return;
+    phLoading.add(id);
+    PH.get(id).then(d=>{
+      phLoading.delete(id);
+      if(!d)return;
+      phCache.set(id,d);
+      $$(`img[data-ph="${id}"]`).forEach(x=>{x.src=d});
+    }).catch(()=>{phLoading.delete(id)});
+  });
+}
+function loadImg(file){
+  return new Promise((res,rej)=>{
+    const u=URL.createObjectURL(file),im=new Image();
+    im.onload=()=>{URL.revokeObjectURL(u);res(im)};
+    im.onerror=()=>{URL.revokeObjectURL(u);rej(new Error('bad'))};
+    im.src=u;
+  });
+}
+async function compressImg(file){
+  const im=await loadImg(file);
+  let max=1280,q=.72;
+  for(let k=0;k<6;k++){
+    const r=Math.min(1,max/Math.max(im.naturalWidth,im.naturalHeight));
+    const c=document.createElement('canvas');
+    c.width=Math.max(1,Math.round(im.naturalWidth*r));c.height=Math.max(1,Math.round(im.naturalHeight*r));
+    c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+    const out=c.toDataURL('image/jpeg',q);
+    if(out.length<700000)return out;
+    max*=.8;q=Math.max(.5,q-.05);
+  }
+  throw new Error('too big');
+}
+let phTarget=null;
+async function uploadPhotos(files,t){
+  const L=LISTS[t.list];
+  if(!files.length||!find(S[L.key],t.id))return;
+  toast('照片處理中…');
+  const added=[];let fail=0,denied=false;
+  for(const f of files){
+    if(!/^image\//.test(f.type)&&!/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name)){fail++;continue}
+    try{
+      const d=await compressImg(f),pid=uid()+uid();
+      await PH.set(pid,d);phCache.set(pid,d);added.push({id:pid,name:f.name});
+    }catch(e){fail++;if(/perm|denied/i.test((e&&e.code)||''))denied=true}
+  }
+  if(added.length)mutate(()=>{const x=find(S[L.key],t.id);if(x)(x.photos=x.photos||[]).push(...added)});
+  toast(added.length?`已加入 ${added.length} 張照片${fail?`，${fail} 張失敗`:''}`:(denied?'沒有上傳權限，請確認 Firestore 規則已加入 photos':'照片上傳失敗，請再試一次'));
+}
+function viewPhoto(listId,itemId,pid){
+  const L=LISTS[listId],x=find(S[L.key],itemId);if(!x)return;
+  const p=(x.photos||[]).find(q=>q.id===pid);if(!p)return;
+  openSheet(`<h3 id="sheet-t">${esc(x.text)}</h3><img class="ph-big" data-ph="${pid}" alt="${esc(p.name||'照片')}"><div class="sheet-btns" style="margin-top:.8rem">${ui.editing&&ui.unlocked?'<button type="button" class="btn danger" data-sheet="rm">刪除照片</button>':''}<span class="sp"></span><button type="button" class="btn primary" data-sheet="close">關閉</button></div>`,{
+    rm:()=>{closeSheet();mutate(()=>{const y=find(S[L.key],itemId);if(y)y.photos=(y.photos||[]).filter(q=>q.id!==pid)},'已刪除照片',true)}
+  });
+  hydratePhotos($('#sheet'));
 }
 function renderFoot(){
   $('#foot').innerHTML=`${SVG.cat}<p>旅途愉快！內容會即時同步給所有開啟這個頁面的人；沒連上同步時只會存在這台裝置，換手機或清除資料前，記得先備份。</p><p id="syncTxt"></p>${FB_ON?`<p>${ui.user?'已登入：'+esc(ui.user.email||'')+(ui.unlocked?'':'（無編輯權限）'):'尚未登入 Google'}</p>`:''}<div class="foot-btns">${FB_ON?(ui.user?'<button type="button" class="btn sm" data-act="logout">登出</button>':'<button type="button" class="btn sm" data-act="login">使用 Google 登入</button>'):''}<button type="button" class="btn sm" data-act="backup">備份與還原</button></div>`;
@@ -881,6 +967,8 @@ document.addEventListener('click',e=>{
     case 'edit-li':editListItem(t.dataset.list,id);break;
     case 'del-li':{const L=LISTS[t.dataset.list],x=find(S[L.key],id);if(x)mutate(()=>S[L.key].splice(S[L.key].indexOf(x),1),'已刪除項目',true);break}
     case 'dismiss':S.sample=false;save();renderHero();break;
+    case 'ph-add':if(!ui.unlocked){askPw();break}phTarget={list:t.dataset.list,id};$('#phInput').click();break;
+    case 'ph-view':viewPhoto(t.dataset.list,id,t.dataset.pid);break;
     case 'backup':backup();break;
     case 'login':askPw();break;
     case 'logout':logout();break;
@@ -914,6 +1002,10 @@ document.addEventListener('change',e=>{
   const d=find(S.days,f.dataset.day),x=d&&find(d.items,f.dataset.id);if(!x)return;
   if(f.tagName==='SELECT'){x.tr=f.value;save();renderTransit();renderDays(false);return}
   x.trNote=f.value.trim();save();renderDays(false);
+});
+$('#phInput').addEventListener('change',e=>{
+  const files=[...e.target.files],t=phTarget;e.target.value='';phTarget=null;
+  if(t&&files.length)uploadPhotos(files,t);
 });
 $('#editBtn').addEventListener('click',()=>{
   if(ui.editing){setEditing(false);return}
