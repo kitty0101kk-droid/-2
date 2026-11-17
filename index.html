@@ -65,6 +65,11 @@ section[hidden]{display:none!important}
 .sync[data-s="err"],.sync[data-s="ro"]{background:var(--coral)}
 .hint{margin-top:1rem;border:2px dashed var(--ink);border-radius:var(--r2);padding:.5rem .9rem;background:var(--yellow);font-size:.9rem}
 
+/* 桌機版：章節選單由左而右、排滿往下換行 */
+@media (min-width:768px){
+  #nav{flex-wrap:wrap;overflow-x:visible;overflow-y:visible;padding:2px 0 6px;gap:.4rem .4rem}
+}
+
 main{padding-top:1.2rem;padding-bottom:calc(3rem + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:2.2rem}
 .sec{scroll-margin-top:84px;display:flex;flex-direction:column;gap:1rem}
 .sec-h{display:flex;align-items:center;gap:.7rem;font-size:1.4rem;line-height:1.3;font-weight:400}
@@ -360,7 +365,7 @@ body.sideopen .side-scrim{display:block}
 }
 @media (max-width:380px){.fl-route{grid-template-columns:auto 1fr auto}.kvs{grid-template-columns:1fr}.tl-i{grid-template-columns:2.8rem 22px minmax(0,1fr)}}
 
-/* ===== 看透透 Map View ===== */
+/* ===== 看透透 Map View（Google 地圖） ===== */
 #mapview .sec-h .ico{background:var(--mint)}
 #mapview .mv-tabs{display:flex;gap:.5rem;overflow-x:auto;padding:4px 3px 8px;margin:0 -3px;scrollbar-width:none}
 #mapview .mv-tabs::-webkit-scrollbar{display:none}
@@ -387,17 +392,20 @@ body.sideopen .side-scrim{display:block}
 #mapview .mv-li-note{font-size:.82rem;color:var(--ink-soft);margin-top:.2rem;white-space:pre-line;overflow-wrap:anywhere}
 #mapview .mv-li-warn{font-size:.75rem;color:#b3553d;margin-top:.25rem}
 #mapview .mv-li-btn{margin-top:.5rem;border:2px solid var(--ink);border-radius:999px;background:var(--paper);padding:0 .7rem;font-size:.82rem;line-height:1.7;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
-#mapview .mv-map{height:560px;border:2px solid var(--ink);border-radius:var(--r);overflow:hidden;background:var(--sand);min-width:0}
-#mapview .mv-map .leaflet-container{width:100%;height:100%;background:var(--sand);font-family:var(--font)}
+#mapview .mv-map{height:560px;border:2px solid var(--ink);border-radius:var(--r);overflow:hidden;background:var(--sand);min-width:0;position:relative}
+#mapview .mv-map>div{width:100%!important;height:100%!important}
 #mapview .mv-tip{font-size:.85rem;color:var(--ink-soft);margin:.2rem 0 0;line-height:1.6}
-#mapview .mv-marker .mv-pin{width:28px;height:28px;border:2px solid var(--ink);border-radius:50% 50% 50% 0;background:var(--coral);transform:rotate(-45deg);box-shadow:0 2px 0 var(--ink);display:flex;align-items:center;justify-content:center}
-#mapview .mv-marker .mv-pin>span{display:block;transform:rotate(45deg);font-size:.8rem;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
-#mapview .mv-marker.on .mv-pin{background:var(--yellow);box-shadow:0 0 0 4px var(--coral),0 2px 0 var(--ink)}
 #mapview .mv-pop{padding:.1rem .2rem;font-family:var(--font);color:var(--ink);min-width:160px}
 #mapview .mv-pop-time{font-size:.78rem;color:var(--ink-soft);font-variant-numeric:tabular-nums}
 #mapview .mv-pop-title{font-size:1rem;line-height:1.4;margin:.1rem 0;overflow-wrap:anywhere}
 #mapview .mv-pop-note{font-size:.85rem;color:var(--ink-soft);white-space:pre-line;overflow-wrap:anywhere}
-#mapview .mv-pop-link{display:inline-block;margin-top:.4rem;margin-right:.3rem;font-size:.82rem;text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:0 .7rem;background:var(--yellow);color:var(--ink);line-height:1.7}
+#mapview .mv-pop-link{display:inline-block;margin-top:.4rem;margin-right:.3rem;font-size:.82rem;text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:0 .7rem;background:var(--yellow);color:var(--ink);line-height:1.7;cursor:pointer}
+#mapview .mv-nokey{margin:12px;padding:1rem 1.1rem;background:var(--white);border:2px dashed var(--ink);border-radius:var(--r3);font-size:.9rem;line-height:1.7}
+#mapview .mv-nokey b{display:block;margin-bottom:.3rem;font-size:1rem}
+#mapview .mv-nokey ol{margin:.4rem 0 .4rem 1.2rem;padding-left:.4rem;list-style:decimal}
+#mapview .mv-nokey li{margin:.2rem 0}
+#mapview .mv-nokey code{background:var(--sand);padding:0 .35rem;border-radius:6px;font-family:monospace}
+#mapview .mv-nokey a{color:inherit;text-decoration:underline}
 @media (max-width:767px){
   #mapview .mv-body{grid-template-columns:1fr}
   #mapview .mv-list{max-height:none;order:2}
@@ -432,7 +440,6 @@ body.sideopen .side-scrim{display:block}
   <footer id="foot"></footer>
 </main>
 
-<button id="fab" class="fab" type="button" aria-label="顯示選單" style="display:none"></button>
 <input id="phInput" type="file" multiple hidden>
 <input id="covInput" type="file" accept="image/*,.gif" hidden>
 <div id="toast" role="status" hidden></div>
@@ -442,12 +449,21 @@ body.sideopen .side-scrim{display:block}
 (()=>{
 'use strict';
 const KEY='tabi-techo-v1';
+
+/* ===== Google 登入與共同編輯設定 ===== */
 const FB={
   apiKey:'AIzaSyDQXG4KEHd9wC4agSMH6MDOwjYWxJMhn2o',
   authDomain:'travel-app-f3664.firebaseapp.com',
   projectId:'travel-app-f3664',
   appId:'1:15875558910:web:6b9928bb2aa730743cc4af'
 };
+
+/* ===== 看透透 Google 地圖 API Key =====
+   前往 https://console.cloud.google.com/google/maps-apis/credentials
+   啟用「Maps JavaScript API」，建立 API Key 後貼在下面（有免費額度）。
+   留空 = 尚未設定，地圖區塊會顯示提示，右側清單仍可使用。 */
+const GMAPS_KEY='';
+
 const EDITORS=['kitty0101kk@gmail.com','chichimeow0212@gmail.com'];
 const FB_ON=!!FB.apiKey&&!/^填入/.test(FB.apiKey);
 const $=(s,r=document)=>r.querySelector(s);
@@ -1171,16 +1187,13 @@ function applyNavLayout(){
   const foot=$('#foot');
   const secs={};
   $$('main > section').forEach(s=>{secs[s.id]=s});
-  // 先把 section 全部移除
   Object.values(secs).forEach(s=>s.remove());
-  // 依 order 重新插入
   S.nav.order.forEach(id=>{
     const s=secs[id];
     if(!s)return;
     s.hidden=S.nav.hidden.includes(id);
     main.insertBefore(s,foot);
   });
-  // 未列在 order 的（理論上不會有）放最後
   Object.keys(secs).forEach(id=>{
     if(!S.nav.order.includes(id))main.insertBefore(secs[id],foot);
   });
@@ -1225,7 +1238,7 @@ function openNavSettings(){
     </div>`;
   }).join('');
   openSheet(`<div class="sheet-hd"><h3 id="sheet-t">選單設定</h3><button type="button" class="mini x sheet-x" data-sheet="close" aria-label="關閉">✕</button></div>
-    <p class="mut">調整章節順序與顯示。總覽固定在第一位且不可隱藏。</p>
+    <p class="mut">調整章節順序與顯示。總覽固定在第一位且不可隱藏。手機版章節選單會顯示為一排可左右滑動；電腦版由左至右、排滿往下換行。</p>
     <div class="nlist">${rows}</div>
     <div class="sheet-btns"><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`);
 }
@@ -1236,33 +1249,23 @@ function refreshNav(){
   setupNavObserver();
 }
 
-/* ================== 看透透 Map View ================== */
-let mvLeafletPromise=null;
-const MV={day:null,map:null,layer:null,markers:new Map(),version:0};
+/* ================== 看透透 Map View（Google Maps） ================== */
+let gmapsPromise=null;
+const MV={day:null,map:null,markers:new Map(),polyline:null,infoWin:null,version:0};
 
-function loadLeaflet(){
-  if(window.L)return Promise.resolve();
-  if(mvLeafletPromise)return mvLeafletPromise;
-  mvLeafletPromise=new Promise((resolve,reject)=>{
-    const link=document.createElement('link');
-    link.rel='stylesheet';
-    link.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
-    const scripts=[
-      'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-      'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js'
-    ];
-    let i=0;
-    (function tryScript(){
-      if(i>=scripts.length){reject(new Error('leaflet-load-fail'));return}
-      const s=document.createElement('script');
-      s.src=scripts[i];s.async=true;
-      s.onload=()=>resolve();
-      s.onerror=()=>{i++;tryScript()};
-      document.head.appendChild(s);
-    })();
+function loadGoogleMaps(){
+  if(window.google&&window.google.maps)return Promise.resolve();
+  if(!GMAPS_KEY)return Promise.reject(new Error('no-key'));
+  if(gmapsPromise)return gmapsPromise;
+  gmapsPromise=new Promise((resolve,reject)=>{
+    const s=document.createElement('script');
+    s.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(GMAPS_KEY)+'&v=weekly&language=zh-TW&region=TW';
+    s.async=true;s.defer=true;
+    s.onload=()=>resolve();
+    s.onerror=()=>reject(new Error('gmaps-load-fail'));
+    document.head.appendChild(s);
   });
-  return mvLeafletPromise;
+  return gmapsPromise;
 }
 
 function itemLatLng(item){
@@ -1288,13 +1291,38 @@ function itemLatLng(item){
   return null;
 }
 
+function pinSVG(idx,on){
+  const w=on?40:32,h=on?50:40;
+  const cx=w/2;
+  const fill=on?'#FBE7A8':'#FAC9BF';
+  const label=String(idx);
+  const fs=on?14:12;
+  const r=on?11:9.5;
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+    <path d="M${cx} 0C${cx-8.84} 0 ${cx-16} 7.16 ${cx-16} 16c0 11 16 24 16 24s16-13 16-24C${cx+16} 7.16 ${cx+8.84} 0 ${cx} 0z" fill="${fill}" stroke="#3E3A39" stroke-width="2"/>
+    <circle cx="${cx}" cy="16" r="${r}" fill="#FFFFFF" stroke="#3E3A39" stroke-width="1.5"/>
+    <text x="${cx}" y="${16+fs*0.36}" text-anchor="middle" font-family="sans-serif" font-size="${fs}" font-weight="700" fill="#3E3A39">${label}</text>
+  </svg>`;
+  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
+}
+
+function popupHtml(it,dayId){
+  return `<div class="mv-pop">
+    <div class="mv-pop-time">${esc(it.time||'--:--')}</div>
+    <div class="mv-pop-title">${esc(it.title)}</div>
+    ${it.note?`<div class="mv-pop-note">${esc(it.note)}</div>`:''}
+    <a class="mv-pop-link" href="${esc(mapUrl(it.addr||it.title))}" target="_blank" rel="noopener">地圖</a>
+    <button type="button" class="mv-pop-link" data-goto-day="${esc(dayId)}" data-goto-item="${esc(it.id)}">看行程</button>
+  </div>`;
+}
+
 function renderMap(){
   const box=$('#mapview');
   if(!box)return;
   if(box.hidden)return;
   const days=sortedDays();
 
-  if(MV.map&&$('#mvMap')&&MV.map.getContainer()===$('#mvMap')){
+  if(MV.map&&$('#mvMap')&&MV.map.getDiv()===$('#mvMap')){
     if(!days.some(d=>d.id===MV.day))MV.day=days.length?days[0].id:null;
     renderMapTabs();
     renderMapDay();
@@ -1310,9 +1338,10 @@ function renderMap(){
   if(!days.some(d=>d.id===MV.day))MV.day=days[0].id;
 
   const v=++MV.version;
+  MV.markers.forEach(m=>{try{m.setMap(null)}catch(e){}});
   MV.markers.clear();
-  if(MV.map){try{MV.map.remove()}catch(e){}MV.map=null}
-  MV.layer=null;
+  if(MV.polyline){try{MV.polyline.setMap(null)}catch(e){}}
+  MV.polyline=null;MV.infoWin=null;MV.map=null;
 
   box.innerHTML=head+
     `<div class="mv-tabs" id="mvTabs" role="tablist" aria-label="選擇天數"></div>
@@ -1320,18 +1349,41 @@ function renderMap(){
        <div class="mv-list" id="mvList" aria-label="當天行程清單"></div>
        <div class="mv-map" id="mvMap" aria-label="互動地圖"></div>
      </div>
-     <p class="mv-tip">💡 若景點沒有出現在地圖上，請在編輯模式下把「緯度,經度」或含座標的 Google 地圖連結，貼進該景點的「地址/網址」欄位（例如 <code>35.7148,139.7967</code>，或含 <code>@35.7148,139.7967</code> 的連結）。</p>`;
+     <p class="mv-tip">💡 景點要出現在地圖上，請在編輯模式下把「緯度,經度」或含座標的 Google 地圖連結貼進該景點的「地址/網址」欄位（例如 <code>35.7148,139.7967</code>，或含 <code>@35.7148,139.7967</code> 的連結）。</p>`;
 
   renderMapTabs();
 
-  loadLeaflet().then(()=>{
+  if(!GMAPS_KEY){
+    const el=$('#mvMap');
+    if(el)el.innerHTML=`<div class="mv-nokey">
+      <p><b>需要 Google Maps API Key</b></p>
+      <p>「看透透」使用 Google 地圖圖資，需要一組免費的 Maps JavaScript API Key。</p>
+      <ol>
+        <li>前往 <a href="https://console.cloud.google.com/google/maps-apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a> 建立專案</li>
+        <li>啟用「Maps JavaScript API」並啟用計費（有每月免費額度）</li>
+        <li>建立 API Key，貼進程式碼最上方 <code>const GMAPS_KEY=''</code> 的位置</li>
+      </ol>
+      <p class="mut">一般個人旅行手帳使用量不會超過免費額度；API Key 可設定 HTTP referrer 限制以避免被盜用。</p>
+    </div>`;
+    renderMapListForDay();
+    return;
+  }
+
+  loadGoogleMaps().then(()=>{
     if(v!==MV.version)return;
-    initLeaflet();
+    initGoogleMap();
     renderMapDay();
   }).catch(()=>{
     const el=$('#mvMap');
-    if(el)el.innerHTML='<p class="empty" style="margin:1rem">地圖載入失敗，請確認網路後重新整理。</p>';
+    if(el)el.innerHTML='<p class="empty" style="margin:1rem">Google 地圖載入失敗，請確認網路、API Key 是否正確，並確認已啟用「Maps JavaScript API」。</p>';
+    renderMapListForDay();
   });
+}
+
+function renderMapListForDay(){
+  const d=sortedDays().find(x=>x.id===MV.day);
+  if(!d)return;
+  renderMapList(sortedItems(d));
 }
 
 function renderMapTabs(){
@@ -1351,15 +1403,28 @@ function renderMapTabs(){
   });
 }
 
-function initLeaflet(){
+function initGoogleMap(){
   const el=$('#mvMap');
-  if(!el||!window.L)return;
-  MV.map=L.map(el,{scrollWheelZoom:true,zoomControl:true});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    maxZoom:19,
-    attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'
-  }).addTo(MV.map);
-  MV.map.setView([35.6812,139.7671],5);
+  if(!el||!window.google||!window.google.maps)return;
+  MV.map=new google.maps.Map(el,{
+    center:{lat:35.6812,lng:139.7671},
+    zoom:5,
+    mapTypeControl:false,
+    streetViewControl:false,
+    fullscreenControl:false,
+    clickableIcons:false,
+    gestureHandling:'auto',
+    zoomControl:true
+  });
+  MV.infoWin=new google.maps.InfoWindow();
+  google.maps.event.addListener(MV.infoWin,'domready',()=>{
+    document.querySelectorAll('.gm-style-iw [data-goto-day]').forEach(btn=>{
+      btn.addEventListener('click',ev=>{
+        ev.preventDefault();
+        gotoItemFromMap(btn.dataset.gotoDay,btn.dataset.gotoItem);
+      });
+    });
+  });
 }
 
 function renderMapDay(){
@@ -1368,64 +1433,47 @@ function renderMapDay(){
   if(!d)return;
   const items=sortedItems(d);
 
-  if(MV.layer){try{MV.map.removeLayer(MV.layer)}catch(e){}MV.layer=null}
+  if(MV.polyline){try{MV.polyline.setMap(null)}catch(e){}MV.polyline=null}
+  MV.markers.forEach(m=>{try{m.setMap(null)}catch(e){}});
   MV.markers.clear();
+  if(MV.infoWin)MV.infoWin.close();
 
-  const group=L.featureGroup();
   const valid=[];
-
   items.forEach((it,idx)=>{
     const ll=itemLatLng(it);
     if(!ll)return;
-    const icon=L.divIcon({
-      className:'mv-marker',
-      html:`<div class="mv-pin"><span>${idx+1}</span></div>`,
-      iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-30]
+    const pos={lat:ll[0],lng:ll[1]};
+    const marker=new google.maps.Marker({
+      position:pos,
+      map:MV.map,
+      title:it.title,
+      icon:{url:pinSVG(idx+1,false),scaledSize:new google.maps.Size(32,40),anchor:new google.maps.Point(16,40)}
     });
-    const marker=L.marker(ll,{icon,title:it.title}).addTo(group);
-    marker.bindPopup(
-      `<div class="mv-pop">
-        <div class="mv-pop-time">${esc(it.time||'--:--')}</div>
-        <div class="mv-pop-title">${esc(it.title)}</div>
-        ${it.note?`<div class="mv-pop-note">${esc(it.note)}</div>`:''}
-        <a class="mv-pop-link" href="${esc(mapUrl(it.addr||it.title))}" target="_blank" rel="noopener">地圖</a>
-        <button type="button" class="mv-pop-link" data-goto-day="${d.id}" data-goto-item="${it.id}">看行程</button>
-      </div>`,
-      {closeButton:true,autoPan:true,maxWidth:280}
-    );
-    marker.on('click',()=>selectMapItem(it.id,true));
+    marker._idx=idx+1;
+    marker.addListener('click',()=>{selectMapItem(it.id,true)});
     MV.markers.set(it.id,marker);
-    valid.push({it,ll});
+    valid.push({it,ll,pos});
   });
 
   if(valid.length>1){
-    L.polyline(valid.map(v=>v.ll),{color:'#3E3A39',weight:2,dashArray:'6 8',opacity:.85,lineCap:'round'}).addTo(group);
+    MV.polyline=new google.maps.Polyline({
+      path:valid.map(v=>v.pos),
+      strokeColor:'#3E3A39',
+      strokeOpacity:0.85,
+      strokeWeight:2,
+      icons:[{icon:{path:'M 0,-1 0,1',strokeOpacity:1,scale:3,strokeColor:'#3E3A39'},offset:'0',repeat:'14px'}],
+      map:MV.map
+    });
   }
-  MV.layer=group.addTo(MV.map);
 
   renderMapList(items);
 
-  if(valid.length===1)MV.map.setView(valid[0].ll,14);
-  else if(valid.length>1)MV.map.fitBounds(group.getBounds().pad(0.15));
-  else MV.map.setView([35.6812,139.7671],5);
-
-  // popup 內"看行程"按鈕需要手動綁定（Leaflet popup 不會冒泡到 document）
-  if(MV.layer){
-    group.eachLayer(l=>{
-      if(l.getPopup&&l.getPopup()){
-        l.getPopup().on&&l.getPopup().on('add',()=>{
-          const pop=l.getPopup().getElement();
-          if(!pop)return;
-          pop.querySelectorAll('[data-goto-day]').forEach(btn=>{
-            btn.addEventListener('click',ev=>{
-              ev.preventDefault();
-              gotoItemFromMap(btn.dataset.gotoDay,btn.dataset.gotoItem);
-            });
-          });
-        });
-      }
-    });
-  }
+  if(valid.length===1){MV.map.setCenter(valid[0].pos);MV.map.setZoom(14)}
+  else if(valid.length>1){
+    const bounds=new google.maps.LatLngBounds();
+    valid.forEach(v=>bounds.extend(v.pos));
+    MV.map.fitBounds(bounds,40);
+  }else{MV.map.setCenter({lat:35.6812,lng:139.7671});MV.map.setZoom(5)}
 }
 
 function renderMapList(items){
@@ -1473,13 +1521,23 @@ function selectMapItem(id,fromMap){
   if(!MV.map)return;
   $$('#mvList .mv-li').forEach(li=>li.classList.toggle('on',li.dataset.mvid===id));
   MV.markers.forEach((m,mid)=>{
-    const el=m.getElement();
-    if(el)el.classList.toggle('on',mid===id);
+    if(mid===id){
+      m.setIcon({url:pinSVG(m._idx,true),scaledSize:new google.maps.Size(40,50),anchor:new google.maps.Point(20,50)});
+      m.setZIndex(999);
+    }else{
+      m.setIcon({url:pinSVG(m._idx,false),scaledSize:new google.maps.Size(32,40),anchor:new google.maps.Point(16,40)});
+      m.setZIndex(1);
+    }
   });
   const marker=MV.markers.get(id);
   if(!marker)return;
-  MV.map.panTo(marker.getLatLng(),{animate:true,duration:.4});
-  setTimeout(()=>{if(MV.markers.get(id)===marker)marker.openPopup()},140);
+  MV.map.panTo(marker.getPosition());
+  const d=sortedDays().find(x=>x.id===MV.day);
+  const it=d?find(d.items,id):null;
+  if(it&&MV.infoWin){
+    MV.infoWin.setContent(popupHtml(it,MV.day));
+    MV.infoWin.open({map:MV.map,anchor:marker});
+  }
   if(!fromMap){
     const li=$('#mvList .mv-li[data-mvid="'+id+'"]');
     if(li)li.scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -1494,6 +1552,15 @@ function gotoItemFromMap(dayId,itemId){
     if(it){it.scrollIntoView({behavior:'smooth',block:'center'});it.classList.add('pop-in')}
     else{const days=$('#days');if(days)days.scrollIntoView({behavior:'smooth'})}
   },80);
+}
+
+function waitForMap(cb,max=4000){
+  const t0=Date.now();
+  (function poll(){
+    if(MV.map){cb();return}
+    if(Date.now()-t0>max){cb();return}
+    setTimeout(poll,120);
+  })();
 }
 
 /* ---------- 彈出視窗 / 表單 ---------- */
@@ -1715,7 +1782,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.body.classList.contains('sideopen'))document.body.classList.remove('sideopen')
 });
 
-// 選單設定（順序與顯示切換）
+/* 選單設定（順序與顯示切換） */
 document.addEventListener('click',e=>{
   const nb=e.target.closest('[data-nav]');
   if(!nb)return;
@@ -1788,13 +1855,12 @@ document.addEventListener('click',e=>{
     case 'to-map':{
       const dayId=el.dataset.day,itId=el.dataset.id;
       MV.day=dayId;
-      // 確保 mapview 顯示中
       if(S.nav.hidden.includes('mapview')){S.nav={order:S.nav.order,hidden:S.nav.hidden.filter(x=>x!=='mapview')};save();refreshNav()}
       renderMap();
       setTimeout(()=>{
         const mv=$('#mapview');
         if(mv)mv.scrollIntoView({behavior:'smooth'});
-        setTimeout(()=>selectMapItem(itId,false),250);
+        waitForMap(()=>selectMapItem(itId,false));
       },80);
       break;
     }
@@ -1875,7 +1941,7 @@ document.addEventListener('change',e=>{
   }
 });
 
-// 交通備註輸入（失焦時儲存）
+/* 交通備註輸入（失焦時儲存） */
 document.addEventListener('focusout',e=>{
   const ta=e.target;
   if(!ta.matches||!ta.matches('.leg-ta'))return;
