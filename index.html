@@ -9,10 +9,12 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&display=swap">
 <style>
 :root{
-  --paper:#FFFCF6; --white:#FFFFFF; --sand:#F3EBDC;
-  --ink:#3E3A39; --ink-soft:#6F6A67;
-  --coral:#F2A497; --yellow:#F6D27A; --blue:#A8D3E6; --green:#B9DAA5;
-  --r:24px; --bounce:cubic-bezier(.34,1.56,.64,1);
+  --paper:#FFFCF6; --white:#FFFFFF; --sand:#F7EEDF;
+  --ink:#3E3A39; --ink-soft:#7A7470;
+  --coral:#FAC9BF; --yellow:#FBE7A8; --blue:#C7E6F2; --green:#D4ECC3;
+  --pink:#F9D4E1; --lavender:#E0D9F4; --peach:#FFD9BD; --mint:#C9EEE0;
+  --r:26px; --r2:20px; --r3:16px;
+  --bounce:cubic-bezier(.34,1.56,.64,1);
   --font:'Huninn','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
   color-scheme:light;
 }
@@ -26,72 +28,53 @@ ol,ul{list-style:none}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer}
 a{color:inherit}
-:focus-visible{outline:3px dashed var(--ink);outline-offset:3px}
+:focus-visible{outline:2px dashed var(--ink);outline-offset:3px}
 .wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .mut{color:var(--ink-soft)}
 body:not(.editing) .edit-only{display:none!important}
+section[hidden]{display:none!important}
 
 .ill{display:block}
-.ill *{fill:none;stroke:var(--ink);stroke-width:var(--sw,3);stroke-linejoin:round;stroke-linecap:round}
+.ill *{fill:none;stroke:var(--ink);stroke-width:var(--sw,2.4);stroke-linejoin:round;stroke-linecap:round}
 .ill .fc{fill:var(--coral)}.ill .fy{fill:var(--yellow)}.ill .fb{fill:var(--blue)}.ill .fg{fill:var(--green)}
 .ill .fw{fill:var(--white)}.ill .fi{fill:var(--ink)}.ill .fn{fill:none}.ill .ns{stroke:none}
 .ill .fs{fill:var(--sand)}
 
-.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--paper);border-bottom:3px solid var(--ink)}
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--paper);border-bottom:2px solid var(--ink)}
 .nav-in{display:flex;align-items:center;gap:.5rem;padding-top:.55rem;padding-bottom:.55rem}
-.nav.bottom{position:fixed;top:auto;bottom:0;left:0;right:0;border-bottom:0;border-top:3px solid var(--ink);padding-bottom:env(safe-area-inset-bottom,0px)}
-.nav.hide{display:none}
-body.navb main{padding-bottom:calc(6rem + env(safe-area-inset-bottom,0px))}
-body.navb #toast{bottom:calc(84px + env(safe-area-inset-bottom,0px))}
-.mini.nb{width:30px;height:30px;font-size:.8rem;flex:none;margin-bottom:3px}
-.fab{position:fixed;right:12px;top:40%;z-index:55;width:48px;height:48px;border:3px solid var(--ink);border-radius:50%;background:var(--yellow);box-shadow:0 3px 0 var(--ink);display:none;place-items:center;touch-action:none;font-size:1.2rem;padding:0;line-height:1}
-.fab.on{display:grid}
+.mini.nb{width:30px;height:30px;font-size:.9rem;flex:none;margin-bottom:3px}
 .mini:disabled{opacity:.35;cursor:default}
-.orglist{margin:.2rem 0}
-.orgrow .txt{flex:1;min-width:0}
-.legs li.leg{display:block;padding:.6rem 0;border-top:2px dotted var(--ink)}
-.legs li.leg:first-child{border-top:0}
-.leg-top{display:flex;align-items:center;gap:.5rem}
-.leg-top .eb{margin-left:auto}
-.leg-top .tm{min-width:3rem;font-variant-numeric:tabular-nums}
-.leg-route{overflow-wrap:anywhere;margin:.2rem 0}
-.leg-note{font-size:.9rem;color:var(--ink-soft);white-space:pre-line;overflow-wrap:anywhere}
-.leg-acts{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.4rem}
-.leg-acts .maplink{margin:0}
-.leg-chain{margin:.4rem 0 .2rem;font-size:.95rem;overflow-wrap:anywhere}
-.leg-mode{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--ink-soft)}
-.leg-mode select{border:3px solid var(--ink);border-radius:999px;background:var(--white);padding:.05rem .6rem;color:var(--ink);min-width:0}
-.leg-lbl{display:flex;flex-direction:column;gap:.15rem;margin-top:.5rem;font-size:.85rem;color:var(--ink-soft)}
-.leg-ta{display:block;width:100%;min-height:4rem;resize:vertical;border:3px solid var(--ink);border-radius:16px;background:var(--paper);padding:.35rem .8rem;line-height:1.5;color:var(--ink)}
-#transit .group{padding-bottom:.8rem}
+
 #nav{display:flex;gap:.4rem;overflow-x:auto;flex:1;min-width:0;scrollbar-width:none;padding:2px 2px 5px}
 #nav::-webkit-scrollbar{display:none}
-#nav a{flex:none;text-decoration:none;border:3px solid var(--ink);border-radius:999px;padding:.12rem .85rem;background:var(--white);font-size:.95rem;line-height:1.5;box-shadow:0 3px 0 var(--ink)}
+#nav a{flex:none;text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:.1rem .85rem;background:var(--white);font-size:.95rem;line-height:1.5;box-shadow:0 2px 0 var(--ink)}
 #nav a.on{background:var(--yellow)}
-.btn{border:3px solid var(--ink);border-radius:999px;background:var(--white);padding:.25rem 1rem;line-height:1.5;box-shadow:0 3px 0 var(--ink);transition:transform .15s var(--bounce),box-shadow .15s}
-.btn:active{transform:translateY(3px);box-shadow:0 0 0 var(--ink)}
+.btn{border:2px solid var(--ink);border-radius:999px;background:var(--white);padding:.22rem 1rem;line-height:1.5;box-shadow:0 2px 0 var(--ink);transition:transform .15s var(--bounce),box-shadow .15s}
+.btn:active{transform:translateY(2px);box-shadow:0 0 0 var(--ink)}
 .btn.primary{background:var(--coral)}
 .btn.ok{background:var(--green)}
 .btn.danger{background:var(--white)}
-.btn.sm{padding:.1rem .8rem;font-size:.9rem}
+.btn.sm{padding:.08rem .8rem;font-size:.9rem}
+.icon-btn{display:inline-flex;align-items:center;justify-content:center;min-height:2rem;padding:0 .6rem}
+.icon-btn svg{display:block;width:18px;height:18px}
+.icon-btn.off{background:var(--sand);color:var(--ink-soft)}
 #editBtn{flex:none;margin-bottom:3px}
-.sync{flex:none;width:16px;height:16px;border:3px solid var(--ink);border-radius:50%;background:var(--sand);margin-bottom:3px}
+.sync{flex:none;width:16px;height:16px;border:2px solid var(--ink);border-radius:50%;background:var(--sand);margin-bottom:3px}
 .sync[data-s="live"]{background:var(--green)}
 .sync[data-s="wait"]{background:var(--yellow)}
 .sync[data-s="err"],.sync[data-s="ro"]{background:var(--coral)}
-.hint{margin-top:1rem;border:3px dashed var(--ink);border-radius:18px;padding:.5rem .9rem;background:var(--yellow);font-size:.9rem}
+.hint{margin-top:1rem;border:2px dashed var(--ink);border-radius:var(--r2);padding:.5rem .9rem;background:var(--yellow);font-size:.9rem}
 
 main{padding-top:1.2rem;padding-bottom:calc(3rem + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:2.2rem}
 .sec{scroll-margin-top:84px;display:flex;flex-direction:column;gap:1rem}
 .sec-h{display:flex;align-items:center;gap:.7rem;font-size:1.4rem;line-height:1.3;font-weight:400}
-.sec-h .ico{width:48px;height:48px;flex:none;border:3px solid var(--ink);border-radius:16px;display:grid;place-items:center}
-.sec-h .ico svg{width:34px;height:34px;--sw:2.5}
+.sec-h .ico{width:48px;height:48px;flex:none;border:2px solid var(--ink);border-radius:var(--r3);display:grid;place-items:center}
+.sec-h .ico svg{width:34px;height:34px;--sw:2.2}
 .sec-sub{font-size:.9rem;color:var(--ink-soft);margin-top:-.5rem}
-.card{background:var(--white);border:3px solid var(--ink);border-radius:var(--r)}
+.card{background:var(--white);border:2px solid var(--ink);border-radius:var(--r)}
 
 .hero{overflow:hidden;background:var(--paper)}
-.hero-ill{width:100%;height:auto;border-bottom:3px solid var(--ink)}
+.hero-ill{width:100%;height:auto;border-bottom:2px solid var(--ink)}
 .hero-body{padding:1.1rem 1.1rem 1.3rem;display:flex;flex-direction:column;gap:.7rem}
 .chips{display:flex;flex-wrap:wrap;gap:.4rem}
 .chip{border:2px solid var(--ink);border-radius:999px;padding:0 .7rem;font-size:.85rem;background:var(--blue);line-height:1.6}
@@ -103,20 +86,20 @@ main{padding-top:1.2rem;padding-bottom:calc(3rem + env(safe-area-inset-bottom,0p
 .clk-h small{font-size:.85rem;color:var(--ink-soft)}
 .clk{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
 .clk.one{grid-template-columns:1fr}
-.clk-c{border:3px solid var(--ink);border-radius:18px;padding:.4rem .7rem .35rem;min-width:0;background:var(--yellow)}
+.clk-c{border:2px solid var(--ink);border-radius:var(--r3);padding:.4rem .7rem .35rem;min-width:0;background:var(--yellow)}
 .clk-c.tw{background:var(--blue)}
 .clk-c small{display:block;font-size:.8rem}
 .clk-c b{display:block;font-weight:400;font-size:clamp(1.3rem,6.2vw,1.8rem);line-height:1.2;font-variant-numeric:tabular-nums}
 .clk-c em{display:block;font-style:normal;font-size:.78rem;color:var(--ink-soft)}
 .clk-diff{grid-column:1/-1;font-size:.8rem;color:var(--ink-soft);margin-top:-.1rem}
 .cd{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem}
-.cd-t{border:3px solid var(--ink);border-radius:18px;text-align:center;padding:.4rem .2rem .3rem;min-width:0}
+.cd-t{border:2px solid var(--ink);border-radius:var(--r3);text-align:center;padding:.4rem .2rem .3rem;min-width:0}
 .cd-t b{display:block;font-weight:400;font-size:clamp(1.5rem,7.5vw,2.2rem);line-height:1.15;font-variant-numeric:tabular-nums}
 .cd-t span{font-size:.8rem}
 .cd-t:nth-child(1){background:var(--coral)}.cd-t:nth-child(2){background:var(--yellow)}
 .cd-t:nth-child(3){background:var(--blue)}.cd-t:nth-child(4){background:var(--green)}
-.cd-msg{grid-column:1/-1;border:3px solid var(--ink);border-radius:18px;background:var(--green);padding:.7rem 1rem;text-align:center;font-size:1.15rem}
-.banner{display:flex;align-items:flex-start;gap:.6rem;border:3px solid var(--ink);border-radius:18px;background:var(--yellow);padding:.5rem .5rem .5rem .9rem;font-size:.9rem}
+.cd-msg{grid-column:1/-1;border:2px solid var(--ink);border-radius:var(--r3);background:var(--mint);padding:.7rem 1rem;text-align:center;font-size:1.15rem}
+.banner{display:flex;align-items:flex-start;gap:.6rem;border:2px solid var(--ink);border-radius:var(--r2);background:var(--yellow);padding:.5rem .5rem .5rem .9rem;font-size:.9rem}
 .banner p{flex:1;min-width:0}
 
 .flight{overflow:hidden;position:relative}
@@ -130,31 +113,33 @@ main{padding-top:1.2rem;padding-bottom:calc(3rem + env(safe-area-inset-bottom,0p
 .ap span{font-size:.85rem;color:var(--ink-soft)}
 .ap.r{text-align:right}
 .fl-arc{width:100%;height:auto;max-width:150px;margin:0 auto}
-.perf{border-top:3px dashed var(--ink);position:relative}
-.perf::before,.perf::after{content:"";position:absolute;top:-13px;width:24px;height:24px;border:3px solid var(--ink);border-radius:50%;background:var(--paper)}
-.perf::before{left:-15px}.perf::after{right:-15px}
+.perf{border-top:2px dashed var(--ink);position:relative}
+.perf::before,.perf::after{content:"";position:absolute;top:-11px;width:20px;height:20px;border:2px solid var(--ink);border-radius:50%;background:var(--paper)}
+.perf::before{left:-12px}.perf::after{right:-12px}
 .fl-meta{display:grid;grid-template-columns:1fr 1fr;gap:.6rem 1rem;padding:.9rem 1rem 1rem}
 .fl-meta small,.kv small{display:block;font-size:.8rem;color:var(--ink-soft);line-height:1.4}
 .fl-meta b,.kv b{font-weight:400}
 .fl-note{grid-column:1/-1;font-size:.9rem;white-space:pre-line}
 .eb{display:inline-flex;gap:.3rem;flex:none}
-.mini{width:34px;height:34px;border:3px solid var(--ink);border-radius:50%;background:var(--white);padding:0;line-height:1;font-size:.95rem;display:grid;place-items:center}
+.mini{width:32px;height:32px;border:2px solid var(--ink);border-radius:50%;background:var(--white);padding:0;line-height:1;font-size:.9rem;display:grid;place-items:center}
 .mini.x{background:var(--coral)}
+.mini.icon-btn{padding:0;width:32px;height:32px}
 .fl-top .eb{margin-left:auto}
-.add{align-self:flex-start;border:3px dashed var(--ink);border-radius:999px;background:var(--paper);padding:.25rem 1rem;line-height:1.5}
+.add{align-self:flex-start;border:2px dashed var(--ink);border-radius:999px;background:var(--paper);padding:.22rem 1rem;line-height:1.5}
 
 .daytabs{display:flex;gap:.5rem;overflow-x:auto;padding:4px 3px 8px;margin:0 -3px;scrollbar-width:none;scroll-snap-type:x proximity}
 .daytabs::-webkit-scrollbar{display:none}
-.dt{flex:none;scroll-snap-align:center;min-width:4.6rem;border:3px solid var(--ink);border-radius:20px;background:var(--white);padding:.25rem .5rem .3rem;text-align:center;line-height:1.35;box-shadow:0 4px 0 var(--ink)}
+.dt{flex:none;scroll-snap-align:center;min-width:4.6rem;border:2px solid var(--ink);border-radius:var(--r2);background:var(--white);padding:.25rem .5rem .3rem;text-align:center;line-height:1.35;box-shadow:0 3px 0 var(--ink)}
 .dt small{display:block;font-size:.75rem;color:var(--ink-soft)}
 .dt b{display:block;font-weight:400;font-size:1.15rem}
 .dt[aria-selected="true"]{background:var(--yellow)}
 .dt[aria-selected="true"] small{color:var(--ink)}
 .dt.bounce{animation:boing .55s var(--bounce)}
 .dt.addday{display:grid;place-content:center;background:var(--paper);border-style:dashed;font-size:1.4rem}
+
 .day-head{display:flex;align-items:center;gap:.8rem;padding:.7rem .9rem;background:var(--blue)}
-.day-ill{width:76px;flex:none;background:var(--paper);border:3px solid var(--ink);border-radius:18px;padding:4px}
-.day-ill svg{width:100%;height:auto;--sw:2.5}
+.day-ill{width:76px;flex:none;background:var(--paper);border:2px solid var(--ink);border-radius:var(--r3);padding:4px}
+.day-ill svg{width:100%;height:auto;--sw:2.2}
 .day-head .t{flex:1;min-width:0}
 .day-head small{font-size:.85rem}
 .day-head h3{font-size:1.25rem;font-weight:400;line-height:1.35;overflow-wrap:anywhere}
@@ -162,67 +147,68 @@ main{padding-top:1.2rem;padding-bottom:calc(3rem + env(safe-area-inset-bottom,0p
 .tl-i{display:grid;grid-template-columns:3.2rem 22px minmax(0,1fr);column-gap:.45rem;padding-bottom:1rem}
 .tl-t{text-align:right;font-size:.95rem;line-height:1.9;font-variant-numeric:tabular-nums;padding-top:.45rem}
 .rail{position:relative}
-.rail::before{content:"";position:absolute;left:50%;top:0;bottom:-1rem;border-left:3px solid var(--ink);transform:translateX(-50%)}
+.rail::before{content:"";position:absolute;left:50%;top:0;bottom:-1rem;border-left:2px solid var(--ink);transform:translateX(-50%)}
 .tl-i:last-child .rail::before{bottom:auto;height:32px}
-.dot{position:absolute;left:50%;top:14px;width:20px;height:20px;margin-left:-10px;border:3px solid var(--ink);border-radius:50%;background:var(--white)}
-.dot.must{background:var(--coral);width:24px;height:24px;margin-left:-12px;top:12px}
-.tl-c{border:3px solid var(--ink);border-radius:18px;background:var(--white);padding:.55rem .8rem .65rem;min-width:0}
+.dot{position:absolute;left:50%;top:14px;width:18px;height:18px;margin-left:-9px;border:2px solid var(--ink);border-radius:50%;background:var(--white)}
+.dot.must{background:var(--coral);width:22px;height:22px;margin-left:-11px;top:12px}
+.tl-c{border:2px solid var(--ink);border-radius:var(--r3);background:var(--white);padding:.55rem .8rem .65rem;min-width:0}
 .tl-c.must{background:var(--yellow)}
 .tl-tags{display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;margin-bottom:.15rem}
 .tl-c h4{font-weight:400;font-size:1.05rem;line-height:1.45;overflow-wrap:anywhere}
 .tl-c p{font-size:.88rem;color:var(--ink-soft);white-space:pre-line;overflow-wrap:anywhere}
 .tl-c.must p{color:var(--ink)}
 .tl-c .eb{margin-top:.4rem}
+.tl-c .item-actions{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.5rem}
 .tag{border:2px solid var(--ink);border-radius:999px;padding:0 .6rem;font-size:.78rem;line-height:1.6;background:var(--sand)}
 .bg-c{background:var(--coral)}.bg-y{background:var(--yellow)}.bg-b{background:var(--blue)}.bg-g{background:var(--green)}.bg-w{background:var(--white)}
-.mustb{display:inline-flex;align-items:center;gap:.2rem;border:2px solid var(--ink);border-radius:999px;background:var(--coral);padding:0 .6rem 0 .4rem;font-size:.78rem;line-height:1.6;animation:wiggle 2.8s ease-in-out infinite}
+.mustb{display:inline-flex;align-items:center;gap:.2rem;border:2px solid var(--ink);border-radius:999px;background:var(--coral);padding:0 .6rem 0 .4rem;font-size:.78rem;line-height:1.6}
 .mustb svg{width:14px;height:14px;--sw:2}
-.empty{border:3px dashed var(--ink);border-radius:var(--r);padding:1.2rem;text-align:center;color:var(--ink-soft)}
+.empty{border:2px dashed var(--ink);border-radius:var(--r);padding:1.2rem;text-align:center;color:var(--ink-soft)}
 .pop-in{animation:pop .55s var(--bounce) both;animation-delay:calc(var(--i,0)*70ms)}
 #daypanel.swap .day-head{animation:pop .5s var(--bounce) both}
 
 .prog{display:flex;align-items:center;gap:.7rem;font-size:.9rem}
-.prog .track{flex:1;height:18px;border:3px solid var(--ink);border-radius:999px;background:var(--white);overflow:hidden}
-.prog .bar{height:100%;background:var(--green);border-right:3px solid var(--ink);transition:width .5s var(--bounce)}
+.prog .track{flex:1;height:16px;border:2px solid var(--ink);border-radius:999px;background:var(--white);overflow:hidden}
+.prog .bar{height:100%;background:var(--green);border-right:2px solid var(--ink);transition:width .5s var(--bounce)}
 .prog .bar[style*="width:0%"]{border-right:0}
 .prog span{flex:none;font-variant-numeric:tabular-nums}
 .group{padding:.8rem 1rem .5rem}
 .group+.group{margin-top:-.4rem}
 .group h3{font-weight:400;font-size:1rem;display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:0 .8rem;background:var(--blue);line-height:1.6;margin-bottom:.3rem}
-.rows li{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-top:2px dotted var(--ink)}
+.rows li{display:flex;align-items:center;gap:.5rem;padding:.35rem 0;border-top:2px dotted var(--ink);flex-wrap:wrap}
 .rows li:first-child{border-top:0}
 .chk{display:flex;align-items:center;gap:.7rem;flex:1;min-width:0;cursor:pointer;position:relative}
 .chk input{position:absolute;opacity:0;width:28px;height:28px;margin:0}
-.box{flex:none;width:28px;height:28px;border:3px solid var(--ink);border-radius:10px;background:var(--white);display:grid;place-items:center}
-.box svg{width:18px;height:18px;opacity:0;--sw:3.5}
+.box{flex:none;width:26px;height:26px;border:2px solid var(--ink);border-radius:10px;background:var(--white);display:grid;place-items:center}
+.box svg{width:16px;height:16px;opacity:0;--sw:3}
 .chk input:checked~.box{background:var(--green)}
 .chk input:checked~.box svg{opacity:1}
-.chk input:focus-visible~.box{outline:3px dashed var(--ink);outline-offset:3px}
+.chk input:focus-visible~.box{outline:2px dashed var(--ink);outline-offset:3px}
 .chk .txt{min-width:0;overflow-wrap:anywhere}
 li.done .txt{color:var(--ink-soft);text-decoration:line-through;text-decoration-thickness:2px}
-.box.boing{animation:boing .5s var(--bounce)}
-.addrow{display:flex;gap:.5rem;flex-wrap:wrap;padding:.6rem 1rem 1rem;border-top:3px dashed var(--ink)}
-.addrow input{flex:1 1 9rem;min-width:0;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:.2rem .9rem}
+.addrow{display:flex;gap:.5rem;flex-wrap:wrap;padding:.6rem 1rem 1rem;border-top:2px dashed var(--ink)}
+.addrow input{flex:1 1 9rem;min-width:0;border:2px solid var(--ink);border-radius:999px;background:var(--paper);padding:.2rem .9rem}
 .addrow input[name="cat"]{flex:0 1 7rem}
-.addrow select{flex:0 1 8.5rem;min-width:0;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:.2rem .9rem}
-.mk{flex:none;border:2px solid var(--ink);border-radius:999px;background:var(--blue);padding:0 .6rem;font-size:.8rem;line-height:1.6;margin-left:.2rem;white-space:nowrap}
+.addrow select{flex:0 1 8.5rem;min-width:0;border:2px solid var(--ink);border-radius:999px;background:var(--paper);padding:.2rem .6rem}
+.mk{flex:none;border:2px solid var(--ink);border-radius:999px;background:var(--pink);padding:0 .6rem;font-size:.8rem;line-height:1.6;margin-left:.2rem;white-space:nowrap}
 .listcard{overflow:hidden}
 .nothing{padding:.9rem 1rem 0;color:var(--ink-soft);font-size:.9rem}
-.rows li{flex-wrap:wrap}
 .ph-strip{flex:0 0 100%;display:flex;flex-wrap:wrap;gap:.5rem;align-items:center;padding:.1rem 0 .3rem 2.4rem}
 body:not(.editing) .ph-strip:not(.has){display:none}
-.ph-th{width:64px;height:64px;padding:0;border:3px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--sand);flex:none}
+.ph-th{width:64px;height:64px;padding:0;border:2px solid var(--ink);border-radius:14px;overflow:hidden;background:var(--sand);flex:none}
 .ph-th img{display:block;width:100%;height:100%;object-fit:cover}
 img[data-ph]:not([src]){visibility:hidden}
-.ph-add{border:3px dashed var(--ink);border-radius:999px;background:var(--paper);padding:0 .8rem;font-size:.85rem;line-height:1.7}
-.ph-big{display:block;width:100%;max-height:60vh;object-fit:contain;border:3px solid var(--ink);border-radius:16px;background:var(--white);min-height:4rem}
-.sec[hidden]{display:none}
-.ph-file{max-width:100%;border:3px solid var(--ink);border-radius:999px;background:var(--blue);padding:0 .8rem;font-size:.85rem;line-height:1.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.rows li.sel{background:var(--paper);border-radius:12px}
-.rows li.drop{background:var(--yellow);outline:3px dashed var(--ink);outline-offset:-3px;border-radius:12px}
+.ph-add{border:2px dashed var(--ink);border-radius:999px;background:var(--paper);padding:0 .8rem;font-size:.85rem;line-height:1.7}
+.ph-big{display:block;width:100%;max-height:60vh;object-fit:contain;border:2px solid var(--ink);border-radius:var(--r3);background:var(--white);min-height:4rem}
+.ph-file{max-width:100%;border:2px solid var(--ink);border-radius:999px;background:var(--blue);padding:0 .8rem;font-size:.85rem;line-height:1.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rows li.sel{background:var(--sand);border-radius:12px}
+.rows li.drop{background:var(--yellow);outline:2px dashed var(--ink);outline-offset:-3px;border-radius:12px}
+.todo-tabs .dt{min-width:auto}
+.todo-tabs .dt small{font-size:.7rem}
+.todo-tabs .dt b{font-size:.95rem}
 
 .hotel{overflow:hidden}
-.hotel-h{display:flex;align-items:center;gap:.7rem;background:var(--yellow);border-bottom:3px solid var(--ink);padding:.7rem 1rem}
+.hotel-h{display:flex;align-items:center;gap:.7rem;background:var(--peach);border-bottom:2px solid var(--ink);padding:.7rem 1rem}
 .hotel-h h3{font-weight:400;font-size:1.15rem;line-height:1.4;flex:1;min-width:0;overflow-wrap:anywhere}
 .nights{flex:none;border:2px solid var(--ink);border-radius:999px;background:var(--white);padding:0 .7rem;font-size:.85rem;line-height:1.6}
 .hotel-b{padding:.9rem 1rem 1rem;display:flex;flex-direction:column;gap:.7rem}
@@ -238,46 +224,45 @@ footer{display:flex;flex-direction:column;align-items:center;gap:.6rem;text-alig
 .cat{width:110px;height:auto}
 footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 .foot-btns{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center}
-.gate{position:fixed;inset:0;z-index:200;background:var(--paper);display:grid;place-items:center;padding:20px}
-.gate-card{width:100%;max-width:360px;background:var(--white);border:3px solid var(--ink);border-radius:var(--r);padding:1.4rem 1.2rem;display:flex;flex-direction:column;gap:.8rem;text-align:center}
-.gate-card h1{font-size:1.7rem;font-weight:400;line-height:1.3}
-.gate-card input{width:100%;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:.35rem 1rem;text-align:center;font-size:1.2rem;letter-spacing:.3em}
-#gmsg{min-height:1.4em;font-size:.9rem}
-.maplink{display:inline-block;text-decoration:none;margin-top:.4rem;margin-right:.4rem;box-shadow:0 2px 0 var(--ink)}
-.loc{overflow-wrap:anywhere}
-.rows li.trrow{flex-wrap:wrap;gap:.4rem .6rem}
-.trrow .tm{min-width:3rem;font-variant-numeric:tabular-nums}
-.cards{display:flex;flex-direction:column;gap:.8rem}
-.cards .group+.group{margin-top:0}
-.gh{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
-.gh h3{margin-bottom:0}
-.gh .eb{margin-left:auto}
-.gh .cnt{font-size:.8rem;color:var(--ink-soft)}
-.subadd{display:flex;gap:.5rem;padding:.5rem 0 .3rem;border-top:2px dotted var(--ink);margin-top:.2rem}
-.subadd input{flex:1;min-width:0;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:.1rem .8rem}
-.subadd .btn{padding:0 .9rem;font-size:.9rem}
-.newcat{display:flex;gap:.5rem;border:3px dashed var(--ink);border-radius:var(--r);padding:.6rem .8rem}
-.newcat input{flex:1;min-width:0;border:3px solid var(--ink);border-radius:999px;background:var(--paper);padding:.2rem .9rem}
+.maplink{display:inline-block;text-decoration:none;box-shadow:0 2px 0 var(--ink)}
+
+.legs{display:flex;flex-direction:column;gap:.6rem;margin-top:.4rem}
+.legs li.leg{display:block;padding:.7rem .9rem;border:2px solid var(--ink);border-radius:var(--r3);background:var(--white)}
+.leg-h{display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;font-size:.95rem;line-height:1.4;margin-bottom:.4rem}
+.leg-no{flex:none;display:inline-flex;align-items:center;justify-content:center;width:1.55rem;height:1.55rem;border:2px solid var(--ink);border-radius:50%;background:var(--coral);font-size:.72rem;font-variant-numeric:tabular-nums}
+.leg-from,.leg-to{font-weight:500;overflow-wrap:anywhere}
+.leg-arrow{color:var(--ink-soft);font-weight:700}
+.leg-mode{display:flex;align-items:center;gap:.5rem;font-size:.85rem;color:var(--ink-soft);margin-top:.2rem}
+.leg-mode select{border:2px solid var(--ink);border-radius:999px;background:var(--white);padding:.05rem .6rem;color:var(--ink);min-width:0}
+.leg-lbl{display:flex;flex-direction:column;gap:.15rem;margin-top:.5rem;font-size:.85rem;color:var(--ink-soft)}
+.leg-ta{display:block;width:100%;min-height:3.6rem;resize:vertical;border:2px solid var(--ink);border-radius:14px;background:var(--paper);padding:.35rem .8rem;line-height:1.5;color:var(--ink)}
+.leg-acts{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+.leg-acts .maplink{margin:0}
+.leg-chain{display:flex;flex-wrap:wrap;align-items:center;gap:.35rem;padding:.6rem .8rem;background:var(--sand);border:2px dashed var(--ink);border-radius:var(--r3);margin:.5rem 0 .9rem;font-size:.88rem;line-height:1.7}
+.chain-chip{background:var(--white);border:2px solid var(--ink);border-radius:999px;padding:0 .65rem;line-height:1.7;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.chain-arrow{color:var(--ink-soft);font-weight:700;flex:none}
+#transit .group{padding-bottom:.9rem}
+#transit .group h3{background:var(--lavender)}
 
 .scrim{position:fixed;inset:0;z-index:80;background:rgba(62,58,57,.38);display:flex;align-items:center;justify-content:center;padding:16px}
 .scrim[hidden]{display:none}
-.sheet{width:100%;max-width:520px;max-height:86vh;max-height:86dvh;overflow-y:auto;background:var(--paper);border:3px solid var(--ink);border-radius:28px;padding:1.1rem 1.2rem 1.2rem;animation:sheetPop .45s var(--bounce)}
+.sheet{width:100%;max-width:520px;max-height:86vh;max-height:86dvh;overflow-y:auto;background:var(--paper);border:2px solid var(--ink);border-radius:var(--r);padding:1.1rem 1.2rem 1.2rem;animation:sheetPop .45s var(--bounce)}
 .sheet h3{font-weight:400;font-size:1.3rem;margin-bottom:.8rem}
 .sheet form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:.8rem 1rem}
 .fld{grid-column:1/-1;display:flex;flex-direction:column;gap:.15rem;min-width:0;max-width:100%}
 .fld.half{grid-column:auto}
 .fld>span{font-size:.85rem;color:var(--ink-soft)}
-.fld input,.fld select,.fld textarea,.sheet textarea{display:block;width:100%;min-width:0;max-width:100%;border:3px solid var(--ink);border-radius:16px;background:var(--white);padding:.3rem .8rem;line-height:1.5;text-align:left}
+.fld input,.fld select,.fld textarea,.sheet textarea{display:block;width:100%;min-width:0;max-width:100%;border:2px solid var(--ink);border-radius:14px;background:var(--white);padding:.3rem .8rem;line-height:1.5;text-align:left}
 .fld input[type="date"],.fld input[type="time"],.fld input[type="datetime-local"]{-webkit-appearance:none;appearance:none;min-height:2.9rem;overflow:hidden}
 .fld input::-webkit-date-and-time-value{text-align:left;min-height:1.5em;margin:0}
 .fld input::-webkit-datetime-edit{padding:0}
 .fld select{text-overflow:ellipsis;min-height:2.9rem}
 .fld textarea,.sheet textarea{resize:vertical;min-height:5.5rem}
 .crow{grid-column:1/-1;display:flex;align-items:center;gap:.7rem;cursor:pointer;position:relative}
-.crow input{position:absolute;opacity:0;width:28px;height:28px;margin:0}
+.crow input{position:absolute;opacity:0;width:26px;height:26px;margin:0}
 .crow input:checked~.box{background:var(--coral)}
 .crow input:checked~.box svg{opacity:1}
-.crow input:focus-visible~.box{outline:3px dashed var(--ink);outline-offset:3px}
+.crow input:focus-visible~.box{outline:2px dashed var(--ink);outline-offset:3px}
 .sheet-btns{grid-column:1/-1;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.3rem}
 .sheet-btns .sp{flex:1}
 .sheet .msg{font-size:.9rem;margin-top:.6rem;min-height:1.4em}
@@ -287,27 +272,33 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 .sheet-hd h3{flex:1;min-width:0;margin:0}
 .sheet-x{flex:none}
 
-#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:.7rem;border:3px solid var(--ink);border-radius:999px;background:var(--yellow);padding:.3rem .5rem .3rem 1.1rem;max-width:calc(100vw - 32px);animation:pop .45s var(--bounce)}
-#toast[hidden]{display:none}
-#toast button{border:3px solid var(--ink);border-radius:999px;background:var(--white);padding:0 .8rem;line-height:1.5}
+/* 選單設定面板 */
+.nlist{display:flex;flex-direction:column;gap:.5rem;margin:.6rem 0 1rem}
+.nrow{display:flex;align-items:center;gap:.5rem;border:2px solid var(--ink);border-radius:var(--r3);background:var(--white);padding:.35rem .5rem}
+.nrow.is-off{opacity:.55;background:var(--sand)}
+.nrow-no{flex:none;width:1.6rem;height:1.6rem;border:2px solid var(--ink);border-radius:50%;background:var(--yellow);display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-variant-numeric:tabular-nums}
+.nrow-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nrow-acts{display:flex;gap:.3rem;flex:none}
 
-.cover-img{aspect-ratio:360/250;background:var(--sand);border-bottom:3px solid var(--ink)}
+#toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:90;display:flex;align-items:center;gap:.7rem;border:2px solid var(--ink);border-radius:999px;background:var(--yellow);padding:.3rem .5rem .3rem 1.1rem;max-width:calc(100vw - 32px);animation:pop .45s var(--bounce)}
+#toast[hidden]{display:none}
+#toast button{border:2px solid var(--ink);border-radius:999px;background:var(--white);padding:0 .8rem;line-height:1.5}
+
+.cover-img{aspect-ratio:360/250;background:var(--sand);border-bottom:2px solid var(--ink)}
 .cover-img img{display:block;width:100%;height:100%;object-fit:cover}
-#tripbar{margin-bottom:-1rem}
-.dt.tr b{font-size:1.3rem;line-height:1.2}
-.dt.tr small{color:var(--ink);font-size:.8rem;max-width:7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .covbtns{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .8rem}
 .btn.sel{background:var(--yellow)}
 .tw{fill:var(--white);stroke:none;animation:tw 2.4s ease-in-out infinite}
 .wv{animation:drift 5s ease-in-out infinite alternate}
 @keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
-.side{position:fixed;top:0;left:0;bottom:0;width:272px;max-width:84vw;z-index:70;background:var(--paper);border-right:3px solid var(--ink);padding:calc(1rem + env(safe-area-inset-top,0px)) .9rem calc(1rem + env(safe-area-inset-bottom,0px));overflow-y:auto;transform:translateX(-104%);visibility:hidden;transition:transform .3s var(--bounce),visibility 0s .3s;display:flex;flex-direction:column;gap:.6rem}
+
+.side{position:fixed;top:0;left:0;bottom:0;width:272px;max-width:84vw;z-index:70;background:var(--paper);border-right:2px solid var(--ink);padding:calc(1rem + env(safe-area-inset-top,0px)) .9rem calc(1rem + env(safe-area-inset-bottom,0px));overflow-y:auto;transform:translateX(-104%);visibility:hidden;transition:transform .3s var(--bounce),visibility 0s .3s;display:flex;flex-direction:column;gap:.6rem}
 body.sideopen .side{transform:none;visibility:visible;transition-delay:0s}
 .side-scrim{position:fixed;inset:0;z-index:65;background:rgba(62,58,57,.38);display:none}
 body.sideopen .side-scrim{display:block}
 .side-h{display:flex;align-items:center;gap:.5rem}
 .side-h h2{flex:1;font-size:1.25rem;font-weight:400}
-.side .st{display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;border:3px solid var(--ink);border-radius:18px;background:var(--white);padding:.4rem .7rem;box-shadow:0 3px 0 var(--ink);line-height:1.3}
+.side .st{display:flex;align-items:center;gap:.65rem;width:100%;text-align:left;border:2px solid var(--ink);border-radius:var(--r3);background:var(--white);padding:.4rem .7rem;box-shadow:0 2px 0 var(--ink);line-height:1.3}
 .side .st[aria-selected="true"]{background:var(--yellow)}
 .st .e{font-size:1.6rem;flex:none}
 .st b{font-weight:400;overflow-wrap:anywhere;display:block}
@@ -317,9 +308,10 @@ body.sideopen .side-scrim{display:block}
 .strow{display:flex;gap:.4rem;align-items:center}
 .strow .st{flex:1;min-width:0;width:auto}
 .strow .mini{flex:none}
-.strename{display:flex;flex-direction:column;gap:.4rem;border:3px solid var(--ink);border-radius:18px;background:var(--yellow);padding:.5rem .6rem}
-.strename input,.strename select{display:block;width:100%;min-width:0;border:3px solid var(--ink);border-radius:999px;background:var(--white);padding:.15rem .8rem;line-height:1.5}
+.strename{display:flex;flex-direction:column;gap:.4rem;border:2px solid var(--ink);border-radius:var(--r3);background:var(--yellow);padding:.5rem .6rem}
+.strename input,.strename select{display:block;width:100%;min-width:0;border:2px solid var(--ink);border-radius:999px;background:var(--white);padding:.15rem .8rem;line-height:1.5}
 .strow2{display:flex;gap:.4rem;justify-content:flex-end}
+
 @media (min-width:1024px){
   body{padding-left:272px;transition:padding-left .3s ease}
   .side{transform:none;visibility:visible;transition:transform .3s ease,visibility 0s;max-width:none}
@@ -329,19 +321,18 @@ body.sideopen .side-scrim{display:block}
   #sideBtn{display:none}
   body.sidecol #sideBtn{display:inline-block}
   .ic-m{display:none}.ic-d{display:inline}
-  .nav.bottom{left:272px}
-  body.sidecol .nav.bottom{left:0}
   #toast{left:calc(50% + 136px)}
   body.sidecol #toast{left:50%}
   .wrap{max-width:1120px}
   main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;gap:2.2rem 2rem;align-items:start}
   main>#top,main>#days,main>#transit,main>#mapview,main>#foot,main>.hint{grid-column:1/-1}
   .hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:stretch}
-  .hero .hero-ill,.hero .cover-img{border-bottom:0;border-right:3px solid var(--ink);align-self:start}
+  .hero .hero-ill,.hero .cover-img{border-bottom:0;border-right:2px solid var(--ink);align-self:start}
   .hero .cover-img{height:100%;aspect-ratio:auto;min-height:300px}
   .hero-body{justify-content:center}
   .tl-i{grid-template-columns:4rem 22px minmax(0,1fr)}
 }
+
 .sun-rays{transform-box:fill-box;transform-origin:center;animation:spin 40s linear infinite}
 .sun-core{transform-box:fill-box;transform-origin:center;animation:breathe 4s ease-in-out infinite}
 .cloud{animation:drift 9s ease-in-out infinite alternate}
@@ -360,31 +351,29 @@ body.sideopen .side-scrim{display:block}
 @keyframes snow{0%{transform:translate(0,-10px)}100%{transform:translate(-22px,230px)}}
 @keyframes sway{0%,100%{transform:rotate(-1.6deg)}50%{transform:rotate(1.6deg)}}
 @keyframes wave{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(14deg)}}
-@keyframes wiggle{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
 @keyframes pop{0%{transform:translateY(16px) scale(.9);opacity:0}60%{transform:translateY(-3px) scale(1.03);opacity:1}100%{transform:none;opacity:1}}
 @keyframes boing{0%{transform:scale(1)}30%{transform:scale(.86,1.12)}55%{transform:scale(1.12,.92)}80%{transform:scale(.97)}100%{transform:scale(1)}}
 @keyframes sheetPop{0%{transform:scale(.8);opacity:0}60%{transform:scale(1.03);opacity:1}100%{transform:none;opacity:1}}
-@keyframes flash{0%,100%{box-shadow:0 0 0 0 transparent}30%{box-shadow:0 0 0 6px var(--coral)}}
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
   .snow{display:none}
 }
 @media (max-width:380px){.fl-route{grid-template-columns:auto 1fr auto}.kvs{grid-template-columns:1fr}.tl-i{grid-template-columns:2.8rem 22px minmax(0,1fr)}}
 
-/* ===== 看透透 Map View（作用域：#mapview） ===== */
-#mapview .sec-h .ico{background:var(--green)}
+/* ===== 看透透 Map View ===== */
+#mapview .sec-h .ico{background:var(--mint)}
 #mapview .mv-tabs{display:flex;gap:.5rem;overflow-x:auto;padding:4px 3px 8px;margin:0 -3px;scrollbar-width:none}
 #mapview .mv-tabs::-webkit-scrollbar{display:none}
-#mapview .mv-tab{flex:none;border:3px solid var(--ink);border-radius:18px;background:var(--white);padding:.2rem .85rem .25rem;line-height:1.35;text-align:center;box-shadow:0 3px 0 var(--ink);min-width:4.6rem;font-family:inherit;color:inherit;cursor:pointer}
+#mapview .mv-tab{flex:none;border:2px solid var(--ink);border-radius:var(--r2);background:var(--white);padding:.2rem .85rem .25rem;line-height:1.35;text-align:center;box-shadow:0 3px 0 var(--ink);min-width:4.6rem;font-family:inherit;color:inherit;cursor:pointer}
 #mapview .mv-tab small{display:block;font-size:.72rem;color:var(--ink-soft)}
 #mapview .mv-tab b{display:block;font-weight:400;font-size:1.05rem}
 #mapview .mv-tab.on{background:var(--yellow)}
 #mapview .mv-tab.on small{color:var(--ink)}
 #mapview .mv-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:1rem;align-items:stretch}
 #mapview .mv-list{display:flex;flex-direction:column;gap:.5rem;max-height:560px;overflow-y:auto;padding:2px 6px 2px 2px}
-#mapview .mv-li{border:3px solid var(--ink);border-radius:14px;background:var(--white);padding:.45rem .75rem .5rem;cursor:pointer;transition:background .15s,box-shadow .2s}
+#mapview .mv-li{border:2px solid var(--ink);border-radius:var(--r3);background:var(--white);padding:.45rem .75rem .5rem;cursor:pointer;transition:background .15s,box-shadow .2s}
 #mapview .mv-li:hover{background:var(--sand)}
-#mapview .mv-li.on{background:var(--yellow);box-shadow:0 0 0 4px var(--coral)}
+#mapview .mv-li.on{background:var(--yellow);box-shadow:0 0 0 3px var(--coral)}
 #mapview .mv-li.noloc{opacity:.7;cursor:default;background:var(--paper)}
 #mapview .mv-li.noloc:hover{background:var(--paper)}
 #mapview .mv-li-head{display:flex;align-items:center;gap:.4rem;font-size:.8rem;color:var(--ink-soft);flex-wrap:wrap}
@@ -397,17 +386,18 @@ body.sideopen .side-scrim{display:block}
 #mapview .mv-li-title{font-size:1rem;line-height:1.4;margin-top:.15rem;overflow-wrap:anywhere}
 #mapview .mv-li-note{font-size:.82rem;color:var(--ink-soft);margin-top:.2rem;white-space:pre-line;overflow-wrap:anywhere}
 #mapview .mv-li-warn{font-size:.75rem;color:#b3553d;margin-top:.25rem}
-#mapview .mv-map{height:560px;border:3px solid var(--ink);border-radius:var(--r);overflow:hidden;background:var(--sand);min-width:0}
+#mapview .mv-li-btn{margin-top:.5rem;border:2px solid var(--ink);border-radius:999px;background:var(--paper);padding:0 .7rem;font-size:.82rem;line-height:1.7;cursor:pointer;box-shadow:0 2px 0 var(--ink)}
+#mapview .mv-map{height:560px;border:2px solid var(--ink);border-radius:var(--r);overflow:hidden;background:var(--sand);min-width:0}
 #mapview .mv-map .leaflet-container{width:100%;height:100%;background:var(--sand);font-family:var(--font)}
 #mapview .mv-tip{font-size:.85rem;color:var(--ink-soft);margin:.2rem 0 0;line-height:1.6}
-#mapview .mv-marker .mv-pin{width:30px;height:30px;border:3px solid var(--ink);border-radius:50% 50% 50% 0;background:var(--coral);transform:rotate(-45deg);box-shadow:0 2px 0 var(--ink);display:flex;align-items:center;justify-content:center}
-#mapview .mv-marker .mv-pin>span{display:block;transform:rotate(45deg);font-size:.82rem;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+#mapview .mv-marker .mv-pin{width:28px;height:28px;border:2px solid var(--ink);border-radius:50% 50% 50% 0;background:var(--coral);transform:rotate(-45deg);box-shadow:0 2px 0 var(--ink);display:flex;align-items:center;justify-content:center}
+#mapview .mv-marker .mv-pin>span{display:block;transform:rotate(45deg);font-size:.8rem;line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
 #mapview .mv-marker.on .mv-pin{background:var(--yellow);box-shadow:0 0 0 4px var(--coral),0 2px 0 var(--ink)}
 #mapview .mv-pop{padding:.1rem .2rem;font-family:var(--font);color:var(--ink);min-width:160px}
 #mapview .mv-pop-time{font-size:.78rem;color:var(--ink-soft);font-variant-numeric:tabular-nums}
 #mapview .mv-pop-title{font-size:1rem;line-height:1.4;margin:.1rem 0;overflow-wrap:anywhere}
 #mapview .mv-pop-note{font-size:.85rem;color:var(--ink-soft);white-space:pre-line;overflow-wrap:anywhere}
-#mapview .mv-pop-link{display:inline-block;margin-top:.4rem;font-size:.82rem;text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:0 .7rem;background:var(--yellow);color:var(--ink);line-height:1.7}
+#mapview .mv-pop-link{display:inline-block;margin-top:.4rem;margin-right:.3rem;font-size:.82rem;text-decoration:none;border:2px solid var(--ink);border-radius:999px;padding:0 .7rem;background:var(--yellow);color:var(--ink);line-height:1.7}
 @media (max-width:767px){
   #mapview .mv-body{grid-template-columns:1fr}
   #mapview .mv-list{max-height:none;order:2}
@@ -421,9 +411,9 @@ body.sideopen .side-scrim{display:block}
 <div id="sideScrim" class="side-scrim" data-act="side-close"></div>
 <header class="nav" id="navbar">
   <div class="nav-in wrap">
-    <button id="sideBtn" class="btn sm" type="button" data-act="side-open" aria-label="開啟旅程選單" style="flex:none;margin-bottom:3px">☰ 旅程</button>
+    <button id="sideBtn" class="btn sm" type="button" data-act="side-open" aria-label="開啟旅程選單" style="flex:none;margin-bottom:3px">☰</button>
     <nav id="nav" aria-label="頁面章節"></nav>
-    <button id="navMenu" class="mini nb" type="button" aria-label="選單設定">⋯</button><span id="syncDot" class="sync" data-s="local" role="img" aria-label="同步狀態：僅存在這台裝置" title="同步狀態：僅存在這台裝置"></span>
+    <button id="navMenu" class="mini nb" type="button" aria-label="選單設定" title="選單設定">⋯</button><span id="syncDot" class="sync" data-s="local" role="img" aria-label="同步狀態：僅存在這台裝置" title="同步狀態：僅存在這台裝置"></span>
     <button id="editBtn" class="btn primary" type="button" aria-pressed="false">編輯</button>
   </div>
 </header>
@@ -442,7 +432,7 @@ body.sideopen .side-scrim{display:block}
   <footer id="foot"></footer>
 </main>
 
-<button id="fab" class="fab" type="button" aria-label="顯示選單">☰</button>
+<button id="fab" class="fab" type="button" aria-label="顯示選單" style="display:none"></button>
 <input id="phInput" type="file" multiple hidden>
 <input id="covInput" type="file" accept="image/*,.gif" hidden>
 <div id="toast" role="status" hidden></div>
@@ -452,14 +442,12 @@ body.sideopen .side-scrim{display:block}
 (()=>{
 'use strict';
 const KEY='tabi-techo-v1';
-/* ===== Google 登入與共同編輯設定（請依 README 步驟填入你的 Firebase 設定） ===== */
 const FB={
   apiKey:'AIzaSyDQXG4KEHd9wC4agSMH6MDOwjYWxJMhn2o',
   authDomain:'travel-app-f3664.firebaseapp.com',
   projectId:'travel-app-f3664',
   appId:'1:15875558910:web:6b9928bb2aa730743cc4af'
 };
-// 允許編輯的 Google 帳號（小寫 email）。留空陣列代表「任何登入的人都能編輯」，不建議。
 const EDITORS=['kitty0101kk@gmail.com','chichimeow0212@gmail.com'];
 const FB_ON=!!FB.apiKey&&!/^填入/.test(FB.apiKey);
 const $=(s,r=document)=>r.querySelector(s);
@@ -469,10 +457,16 @@ const uid=()=>Math.random().toString(36).slice(2,9);
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 const pad=n=>String(n).padStart(2,'0');
 
+const SVG_EYE_OPEN='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>';
+const SVG_EYE_CLOSE='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9c2 4 5 6 9 6s7-2 9-6"/><path d="M7 13l-2 3M12 15v3M17 13l2 3"/></svg>';
+
+const DEF_ORDER=['top','flights','days','transit','mapview','todo','hotels','prep','pack'];
+const LABELS={top:'總覽',flights:'航班',days:'行程',transit:'交通',mapview:'看透透',todo:'待辦',hotels:'住宿',prep:'出發前',pack:'行李'};
+
 function sample(){
-  const it=(time,title,tr,note='',must=false)=>({id:uid(),time,title,tr,note,must});
+  const it=(time,title,tr,note='',must=false)=>({id:uid(),time,title,tr,note,must,addr:''});
   const li=t=>({id:uid(),text:t,done:false});
-  const pk=(cat,t)=>({id:uid(),cat,text:t,done:false});
+  const pk=(cat,t)=>({id:uid(),cat,text:t,done:false,dayId:''});
   return {
     sample:true,
     trip:{title:'東京・京都 5 日小旅行',tagline:'冬天的東京與京都，慢慢走、好好吃',depart:'2026-12-20T08:30',back:'2026-12-24'},
@@ -515,8 +509,8 @@ function sample(){
         it('19:10','搭機返台','飛機')]}
     ],
     hotels:[
-      {id:uid(),name:'淺草和風旅宿（範例）',addr:'東京都台東區淺草 1-1-1',inDate:'2026-12-20',inTime:'15:00',outDate:'2026-12-23',outTime:'11:00',code:'ABC12345',phone:'+81-3-0000-0000',note:'櫃檯 22:00 關閉，晚到要先通知'},
-      {id:uid(),name:'京都町家小宿（範例）',addr:'京都府京都市東山區祇園町 1-1',inDate:'2026-12-23',inTime:'15:00',outDate:'2026-12-24',outTime:'10:00',code:'KYO67890',phone:'',note:''}
+      {id:uid(),name:'淺草和風旅宿（範例）',addr:'東京都台東區淺草 1-1-1',inDate:'2026-12-20',inTime:'15:00',outDate:'2026-12-23',outTime:'11:00',note:'櫃檯 22:00 關閉，晚到要先通知'},
+      {id:uid(),name:'京都町家小宿（範例）',addr:'京都府京都市東山區祇園町 1-1',inDate:'2026-12-23',inTime:'15:00',outDate:'2026-12-24',outTime:'10:00',note:''}
     ],
     todoCats:['吃','買','拍照'],todos:[pk('吃','在淺草吃人形燒'),pk('買','買東京香蕉當伴手禮'),pk('吃','祇園喝一杯抹茶'),pk('買','藥妝店補貨'),pk('拍照','在河口湖拍富士山')],
     prep:[li('確認護照效期（建議 6 個月以上）'),li('填寫 Visit Japan Web'),li('買網卡或 eSIM'),li('換日幣現金'),li('預訂新幹線與巴士座位'),li('預約澀谷 SKY'),li('辦理旅平險'),li('下載離線地圖與翻譯')],
@@ -528,13 +522,31 @@ function sample(){
       pk('其他','折疊傘'),pk('其他','環保購物袋')]
   };
 }
+
 function normalize(o){
   if(!o||typeof o!=='object'||!o.trip) return null;
   const arr=k=>Array.isArray(o[k])?o[k]:[];
   const fix=a=>a.map(x=>({...x,id:x.id||uid()}));
-  return {sample:!!o.sample,cover:{mode:'scene',style:'classic',seed:1,...(o.cover||{})},trip:{title:'',tagline:'',depart:'',back:'',tz:'',...o.trip},flights:fix(arr('flights')),
+  let nav={order:DEF_ORDER.slice(),hidden:[]};
+  if(o.nav&&typeof o.nav==='object'){
+    const order=Array.isArray(o.nav.order)?o.nav.order.filter(id=>DEF_ORDER.includes(id)):[];
+    DEF_ORDER.forEach(id=>{if(!order.includes(id))order.push(id)});
+    const hidden=Array.isArray(o.nav.hidden)?o.nav.hidden.filter(id=>DEF_ORDER.includes(id)&&id!=='top'):[];
+    nav={order,hidden};
+  }
+  return {
+    sample:!!o.sample,
+    cover:{mode:'scene',style:'classic',seed:1,...(o.cover||{})},
+    trip:{title:'',tagline:'',depart:'',back:'',tz:'',...o.trip},
+    nav,
+    flights:fix(arr('flights')),
     days:arr('days').map(d=>({...d,id:d.id||uid(),items:fix(Array.isArray(d.items)?d.items:[])})),
-    hotels:fix(arr('hotels')),todos:fix(arr('todos')),todoCats:Array.isArray(o.todoCats)?o.todoCats.slice():[...new Set(arr('todos').map(i=>i.cat||'未分類'))],prep:fix(arr('prep')),pack:fix(arr('pack'))};
+    hotels:fix(arr('hotels')),
+    todos:fix(arr('todos')).map(x=>({...x,dayId:x.dayId||''})),
+    todoCats:Array.isArray(o.todoCats)?o.todoCats.slice():[...new Set(arr('todos').map(i=>i.cat||'未分類'))],
+    prep:fix(arr('prep')),
+    pack:fix(arr('pack'))
+  };
 }
 function normRoot(o){
   if(o&&Array.isArray(o.trips)){const ts=o.trips.map(t=>({id:t.id||uid(),name:t.name||'旅程',country:t.country||'其他',data:normalize(t.data)})).filter(t=>t.data);return ts.length?{trips:ts}:null}
@@ -551,11 +563,10 @@ function save(){
   try{localStorage.setItem(KEY,JSON.stringify(ROOT))}catch(e){if(!saveWarned){saveWarned=true;toast('這個瀏覽器無法儲存，重新整理後資料會消失。可到頁尾「備份與還原」複製備份。')}}
   push();
 }
-const ui={editing:false,day:null,tday:null,lastCat:'其他',unlocked:!FB_ON,user:null,trip:null,renaming:null};
+const ui={editing:false,day:null,tday:null,todoDay:'',lastCat:'其他',unlocked:!FB_ON,user:null,trip:null,renaming:null};
 try{ui.trip=localStorage.getItem('tabi-techo-act')}catch(e){}
 S=curTrip().data;
 let auth=null,AU=null;
-/* 照片：縮圖後存成獨立文件（雲端：Firestore photos 集合；本機模式：localStorage） */
 const phCache=new Map(),phLoading=new Set();
 let phSel=null,phTarget=null;
 const MAXF=650*1024;
@@ -564,7 +575,6 @@ let PH={
   get:async id=>{try{return localStorage.getItem('tabi-photo-'+id)}catch(e){return null}}
 };
 
-/* ---------- 共同編輯同步 ---------- */
 let dbDoc=null,syncState='local',lastJson='',remoteJson='',deferred=null,pushT=0,firstSnap=true;
 const SYNC_TXT={local:'尚未連線，目前只存在這台裝置（登入 Google 後可跨裝置同步）',wait:'同步中…',live:'已連線：所有人的修改會即時同步',ro:'這個 Google 帳號沒有編輯權限，修改不會同步',err:'同步失敗，會再自動重試'};
 function setSync(s){
@@ -669,8 +679,7 @@ const urlPlace=u=>{try{const x=new URL(u);let h=x.href;try{h=decodeURIComponent(
   m=x.pathname.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);if(m)return m[1]+','+m[2];
 }catch(e){}return ''};
 const placeText=x=>{const raw=String(x.addr||'').trim();if(!raw)return x.title||'';const u=asUrl(raw);return u?(urlPlace(u)||u):raw};
-const addrShow=a=>{const u=asUrl(a);if(!u)return a;try{return '地圖連結（'+new URL(u).hostname.replace(/^www\./,'')+'）'}catch(e){return a}};
-const mapBtn=a=>`<a class="btn sm maplink" href="${esc(mapUrl(a))}" target="_blank" rel="noopener">開啟地圖</a>`;
+const mapBtn=a=>`<a class="btn sm maplink" href="${esc(mapUrl(a))}" target="_blank" rel="noopener">地圖</a>`;
 const TR={'飛機':'bg-b','電車':'bg-g','新幹線':'bg-c','地鐵':'bg-g','巴士':'bg-y','計程車':'bg-y','租車':'bg-y','渡輪':'bg-b','步行':'bg-w','其他':''};
 const TRS=Object.keys(TR);
 const sortedDays=()=>[...S.days].sort((a,b)=>(a.date||'').localeCompare(b.date||''));
@@ -700,7 +709,7 @@ function readFile(f){
   });
 }
 
-/* ---------- 插圖（同原稿） ---------- */
+/* ---------- 插圖 ---------- */
 const SVG={
   hero:`<svg class="ill hero-ill" viewBox="0 0 360 250" role="img" aria-label="插圖：冬日的富士山、鳥居、飛機和行駛中的新幹線">
     <rect width="360" height="250" class="fy ns"/>
@@ -719,17 +728,17 @@ const SVG={
     <g class="train">
       <rect class="fw" x="-130" y="212" width="126" height="28" rx="8"/>
       <rect class="fb" x="-118" y="218" width="14" height="9" rx="3"/><rect class="fb" x="-96" y="218" width="14" height="9" rx="3"/><rect class="fb" x="-74" y="218" width="14" height="9" rx="3"/><rect class="fb" x="-52" y="218" width="14" height="9" rx="3"/><rect class="fb" x="-30" y="218" width="14" height="9" rx="3"/>
-      <path class="fc" d="M-128 233H-6" stroke-width="4"/>
+      <path class="fc" d="M-128 233H-6" stroke-width="3"/>
       <path class="fw" d="M0 240V220Q0 212 10 212H96Q116 212 124 228L128 240Z"/>
       <rect class="fb" x="12" y="218" width="14" height="9" rx="3"/><rect class="fb" x="34" y="218" width="14" height="9" rx="3"/><rect class="fb" x="56" y="218" width="14" height="9" rx="3"/><path class="fb" d="M84 218H98Q106 218 110 226H84Z"/>
-      <path class="fc" d="M2 233H124" stroke-width="4"/>
+      <path class="fc" d="M2 233H124" stroke-width="3"/>
     </g>
     <circle class="snow" cx="40" cy="0" r="3" style="animation-duration:8s;animation-delay:-2s"/><circle class="snow" cx="98" cy="0" r="2.5" style="animation-duration:10s;animation-delay:-6s"/>
     <circle class="snow" cx="158" cy="0" r="3" style="animation-duration:9s;animation-delay:-4s"/><circle class="snow" cx="212" cy="0" r="2.5" style="animation-duration:11s;animation-delay:-1s"/>
     <circle class="snow" cx="262" cy="0" r="3" style="animation-duration:8.5s;animation-delay:-7s"/><circle class="snow" cx="322" cy="0" r="2.5" style="animation-duration:10.5s;animation-delay:-3s"/>
     <circle class="snow" cx="352" cy="0" r="3" style="animation-duration:9.5s;animation-delay:-5s"/>
   </svg>`,
-  arc:`<svg class="ill fl-arc" viewBox="0 0 120 44" aria-hidden="true" style="--sw:2.5"><path d="M6 38Q60 -8 114 38" stroke-dasharray="1 8"/><g transform="translate(60 14)"><g class="bobber"><path class="fw" d="M-14 0L8 -3Q15 -3 16 0Q15 3 8 3Z"/><path class="fb" d="M-2 0L-8 -9L-3 -9L6 -1Z"/><path class="fb" d="M-2 0L-8 9L-3 9L6 1Z"/><path class="fc" d="M-14 0L-18 -6L-14 -6L-9 -1Z"/></g></g></svg>`,
+  arc:`<svg class="ill fl-arc" viewBox="0 0 120 44" aria-hidden="true" style="--sw:2.2"><path d="M6 38Q60 -8 114 38" stroke-dasharray="1 8"/><g transform="translate(60 14)"><g class="bobber"><path class="fw" d="M-14 0L8 -3Q15 -3 16 0Q15 3 8 3Z"/><path class="fb" d="M-2 0L-8 -9L-3 -9L6 -1Z"/><path class="fb" d="M-2 0L-8 9L-3 9L6 1Z"/><path class="fc" d="M-14 0L-18 -6L-14 -6L-9 -1Z"/></g></g></svg>`,
   star:`<svg class="ill" viewBox="0 0 20 20" aria-hidden="true"><path class="fy" d="M10 2l2.4 5 5.4.7-4 3.7 1 5.4L10 14.2 5.2 16.8l1-5.4-4-3.7 5.4-.7z"/></svg>`,
   check:`<svg class="ill" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>`,
   ico:{
@@ -745,11 +754,11 @@ const SVG={
   day:{
     fuji:`<svg class="ill" viewBox="0 0 80 56" aria-hidden="true"><path class="fb" d="M6 52L32 14Q40 4 48 14L74 52z"/><path class="fw" d="M26 22l6-8Q40 4 48 14l6 8-7-3-7 6-7-6z"/><circle cx="64" cy="12" r="7" class="fc"/></svg>`,
     torii:`<svg class="ill" viewBox="0 0 80 56" aria-hidden="true"><path class="fc" d="M8 12h64q-2 9-6 9H14q-4 0-6-9z"/><rect class="fc" x="18" y="21" width="7" height="31"/><rect class="fc" x="55" y="21" width="7" height="31"/><rect class="fc" x="14" y="30" width="52" height="6"/></svg>`,
-    train:`<svg class="ill" viewBox="0 0 80 56" aria-hidden="true"><path class="fw" d="M4 46V26Q4 17 12 17h44Q70 17 76 38l2 8z"/><rect class="fb" x="11" y="23" width="12" height="9" rx="3"/><rect class="fb" x="29" y="23" width="12" height="9" rx="3"/><rect class="fb" x="47" y="23" width="12" height="9" rx="3"/><path class="fc" d="M5 40h72" stroke-width="4"/></svg>`,
+    train:`<svg class="ill" viewBox="0 0 80 56" aria-hidden="true"><path class="fw" d="M4 46V26Q4 17 12 17h44Q70 17 76 38l2 8z"/><rect class="fb" x="11" y="23" width="12" height="9" rx="3"/><rect class="fb" x="29" y="23" width="12" height="9" rx="3"/><rect class="fb" x="47" y="23" width="12" height="9" rx="3"/><path class="fc" d="M5 40h72" stroke-width="3"/></svg>`,
     bus:`<svg class="ill" viewBox="0 0 80 56" aria-hidden="true"><rect x="6" y="10" width="68" height="34" rx="9" class="fy"/><rect class="fb" x="12" y="16" width="14" height="11" rx="3"/><rect class="fb" x="33" y="16" width="14" height="11" rx="3"/><rect class="fb" x="54" y="16" width="14" height="11" rx="3"/><circle cx="22" cy="46" r="6" class="fw"/><circle cx="58" cy="46" r="6" class="fw"/></svg>`,
     lantern:`<svg class="ill" viewBox="0 0 80 56" aria-hidden="true"><path class="fc" d="M24 10h32q6 18 0 36H24q-6-18 0-36z"/><rect class="fy" x="30" y="4" width="20" height="6" rx="2"/><rect class="fy" x="30" y="46" width="20" height="6" rx="2"/><path d="M22 22h36M21 34h38" class="fn"/></svg>`
   },
-  cat:`<svg class="ill cat" viewBox="0 0 100 110" aria-hidden="true" style="--sw:2.8"><path class="fw" d="M22 102Q16 64 30 54h40q14 10 8 48z"/><ellipse cx="50" cy="88" rx="13" ry="10" class="fy"/><path class="fw" d="M26 36L24 12l18 12q8-2 16 0l18-12-2 24q6 10-2 18-24 8-44 0-8-8-2-18z"/><circle cx="40" cy="38" r="2.6" class="fi"/><circle cx="60" cy="38" r="2.6" class="fi"/><circle cx="33" cy="46" r="4" class="fc ns"/><circle cx="67" cy="46" r="4" class="fc ns"/><path d="M45 45q5 5 10 0"/><path class="fy" d="M31 56q19 10 38 0l-2 6q-17 9-34 0z"/><circle cx="50" cy="68" r="5" class="fy"/><g class="paw"><rect class="fw" x="8" y="46" width="17" height="32" rx="8.5"/></g></svg>`
+  cat:`<svg class="ill cat" viewBox="0 0 100 110" aria-hidden="true" style="--sw:2.4"><path class="fw" d="M22 102Q16 64 30 54h40q14 10 8 48z"/><ellipse cx="50" cy="88" rx="13" ry="10" class="fy"/><path class="fw" d="M26 36L24 12l18 12q8-2 16 0l18-12-2 24q6 10-2 18-24 8-44 0-8-8-2-18z"/><circle cx="40" cy="38" r="2.6" class="fi"/><circle cx="60" cy="38" r="2.6" class="fi"/><circle cx="33" cy="46" r="4" class="fc ns"/><circle cx="67" cy="46" r="4" class="fc ns"/><path d="M45 45q5 5 10 0"/><path class="fy" d="M31 56q19 10 38 0l-2 6q-17 9-34 0z"/><circle cx="50" cy="68" r="5" class="fy"/><g class="paw"><rect class="fw" x="8" y="46" width="17" height="32" rx="8.5"/></g></svg>`
 };
 function dayIll(d,idx){
   const trs=d.items.map(i=>i.tr);
@@ -775,7 +784,7 @@ function genCover(st,seed){
     o+=`<path class="fy" d="M0 220Q120 196 250 212T360 206V250H0Z"/>`;
     const px=r(250,320);o+=`<g class="tree"><path class="fi" d="M${f(px)} 214Q${f(px-8)} 170 ${f(px+4)} 130"/><path class="fg" d="M${f(px+4)} 130q-30-6-40 14q22-14 40-4zM${f(px+4)} 130q30-8 42 12q-24-12-42-2zM${f(px+4)} 130q-6-28-30-30q22 6 30 30zM${f(px+4)} 130q8-26 34-26q-26 8-34 26z"/></g>`;
   }else if(st==='night'){
-    o+=`<rect width="360" height="250" style="fill:#4B5A7E;stroke:none"/><circle class="fy" cx="${f(r(60,300))}" cy="${f(r(40,70))}" r="20"/>`;
+    o+=`<rect width="360" height="250" style="fill:#8B9BC1;stroke:none"/><circle class="fy" cx="${f(r(60,300))}" cy="${f(r(40,70))}" r="20"/>`;
     for(let i=0;i<16;i++)o+=`<circle class="tw" cx="${f(r(5,355))}" cy="${f(r(5,110))}" r="${r(1,2.2).toFixed(1)}" style="animation-delay:-${r(0,2.4).toFixed(1)}s"/>`;
     o+=pl(r(40,300),r(80,110));
     for(let x=-5;x<360;){const w=r(26,44),h=r(50,120),c=pk(['fb','fc','fw','fg']);o+=`<rect class="${c}" x="${f(x)}" y="${f(215-h)}" width="${f(w)}" height="${f(h)}"/>`;
@@ -839,12 +848,18 @@ const clockHidden=()=>{try{return localStorage.getItem('tabi-clock-hide')==='1'}
 function toggleClock(){try{localStorage.setItem('tabi-clock-hide',clockHidden()?'0':'1')}catch(e){}clockTick(true)}
 function clockTick(force){
   const box=$('#clock');if(!box)return;
-  if(clockHidden()){if(box.dataset.m!=='h'||force){box.dataset.m='h';box.innerHTML='<button type="button" class="btn sm" data-act="clock-toggle" aria-pressed="false">🕒 顯示當地／台灣時間</button>'}return}
+  if(clockHidden()){
+    if(box.dataset.m!=='h'||force){
+      box.dataset.m='h';
+      box.innerHTML=`<button type="button" class="btn sm icon-btn off" data-act="clock-toggle" aria-pressed="false" aria-label="顯示時間" title="顯示時間">${SVG_EYE_CLOSE}</button>`;
+    }
+    return;
+  }
   const tz=tripTz(),now=new Date(),same=!tz||tz==='Asia/Taipei';
   const mode=same?'1':'2';
   if(box.dataset.m!==mode||force){
     box.dataset.m=mode;
-    box.innerHTML=`<div class="clk-h"><small>${same?'台灣時間':'旅遊地時間 ／ 台灣時間'}</small><button type="button" class="btn sm" data-act="clock-toggle" aria-pressed="true" aria-label="隱藏時間">隱藏</button></div>
+    box.innerHTML=`<div class="clk-h"><small>${same?'台灣時間':'旅遊地時間 ／ 台灣時間'}</small><button type="button" class="btn sm icon-btn" data-act="clock-toggle" aria-pressed="true" aria-label="隱藏時間" title="隱藏時間">${SVG_EYE_OPEN}</button></div>
     <div class="clk${same?' one':''}">${same?'':'<div class="clk-c" id="clkL"><small>旅遊地</small><b></b><em></em></div>'}<div class="clk-c tw" id="clkT"><small>台灣</small><b></b><em></em></div><div class="clk-diff" id="clkD"></div></div>`;
   }
   const set=(id,tzz)=>{const c=$(id);if(!c)return;const [t,d]=fmtTz(tzz,now);c.querySelector('b').textContent=t;c.querySelector('em').textContent=d};
@@ -902,10 +917,18 @@ function renderDays(anim){
   panel.className=anim?'swap':'';
   const items=sortedItems(d);
   panel.innerHTML=`<div class="card day-head"><div class="day-ill">${dayIll(d,idx)}</div><div class="t"><small>Day ${idx+1} · ${md(d.date)}（${wk(d.date)}）</small><h3>${esc(d.title||'未命名的一天')}</h3></div>${editBtns('day',d.id)}</div>`+
-  (items.length?`<ol class="tl">${items.map((x,i)=>`<li class="tl-i${anim?' pop-in':''}" id="it-${x.id}" style="--i:${i}">
+  (items.length?`<ol class="tl">${items.map((x,i)=>{
+    const hasMap=!!x.addr;
+    const canMapView=hasMap&&!!itemLatLng(x);
+    const actions=hasMap?`<div class="item-actions">
+        <a class="btn sm maplink" href="${esc(mapUrl(x.addr))}" target="_blank" rel="noopener">地圖</a>
+        ${canMapView?`<button type="button" class="btn sm" data-act="to-map" data-day="${d.id}" data-id="${x.id}">看透透</button>`:''}
+      </div>`:'';
+    return `<li class="tl-i${anim?' pop-in':''}" id="it-${x.id}" style="--i:${i}">
     <time class="tl-t">${esc(x.time||'')}</time><span class="rail"><i class="dot${x.must?' must':''}"></i></span>
     <div class="tl-c${x.must?' must':''}"><div class="tl-tags">${x.tr?`<span class="tag ${TR[x.tr]??''}">${esc(x.tr)}</span>`:''}${x.must?`<span class="mustb">${SVG.star}必去</span>`:''}</div>
-    <h4>${esc(x.title)}</h4>${x.addr?`<p class="loc">📍 ${esc(addrShow(x.addr))}</p>`:''}${x.trNote?`<p>🚆 ${nl(x.trNote)}</p>`:''}${x.note?`<p>${nl(x.note)}</p>`:''}${x.addr?mapBtn(x.addr):''}${editBtns('item',x.id,`data-day="${d.id}"`)}</div></li>`).join('')}</ol>`:'<p class="empty" style="margin-top:1.1rem">這天還沒有安排。</p>')+
+    <h4>${esc(x.title)}</h4>${x.trNote?`<p>🚆 ${nl(x.trNote)}</p>`:''}${x.note?`<p>${nl(x.note)}</p>`:''}${actions}${editBtns('item',x.id,`data-day="${d.id}"`)}</div></li>`;
+  }).join('')}</ol>`:'<p class="empty" style="margin-top:1.1rem">這天還沒有安排。</p>')+
   `<button type="button" class="add edit-only" style="margin-top:.2rem" data-act="add-item" data-id="${d.id}">＋ 新增行程</button>`;
   if(anim){const a=$('#tab-'+d.id);if(a){a.classList.add('bounce');a.scrollIntoView?.({inline:'center',block:'nearest',behavior:reduced()?'auto':'smooth'})}}
 }
@@ -920,16 +943,18 @@ function renderTransit(){
   const oldTabs=$('#transit .daytabs'),sl=oldTabs?oldTabs.scrollLeft:0;
   const idx=days.findIndex(d=>d.id===ui.tday),d=days[idx],its=sortedItems(d);
   const tabs=days.map((x,i)=>`<button type="button" class="dt" role="tab" aria-selected="${x.id===ui.tday}" data-act="tday" data-id="${x.id}"><small>Day ${i+1}</small><b>${md(x.date)}</b><small>${wk(x.date)}</small></button>`).join('');
-  const chain=its.length?its.map(x=>esc(x.title)).join(' <b>➔</b> '):'';
+  const chain=its.length?its.map((x,i)=>`<span class="chain-chip">${esc(x.title)}</span>${i<its.length-1?'<span class="chain-arrow">→</span>':''}`).join(''):'';
   const legs=its.slice(1).map((b,i)=>{
     const a=its[i];
-    return `<li class="leg"><p class="leg-route">${esc(a.title)} <b>➔</b> ${esc(b.title)}</p>
-    <div class="leg-top"><label class="leg-mode"><span>交通方式</span><select class="leg-tr" data-day="${d.id}" data-id="${b.id}" aria-label="${esc(a.title)}到${esc(b.title)}的交通方式"><option value="">未設定</option>${TRS.map(o=>`<option${o===b.tr?' selected':''}>${esc(o)}</option>`).join('')}</select></label></div>
-    <label class="leg-lbl"><span>怎麼搭乘／注意事項</span><textarea class="leg-ta" rows="2" data-day="${d.id}" data-id="${b.id}" placeholder="例如：JR 山手線往新宿，搭 3 站；月台 2 號" aria-label="${esc(a.title)}到${esc(b.title)}的搭乘備註">${esc(b.trNote||'')}</textarea></label>
-    <div class="leg-acts"><a class="btn sm maplink" href="${esc(dirUrl(placeText(a),placeText(b),b.tr))}" target="_blank" rel="noopener">查看路線</a><button type="button" class="btn sm" data-act="goto-item" data-day="${d.id}" data-id="${b.id}">查看行程</button></div></li>`;
+    return `<li class="leg">
+      <div class="leg-h"><span class="leg-no">${i+1}</span><span class="leg-from">${esc(a.title)}</span><span class="leg-arrow">→</span><span class="leg-to">${esc(b.title)}</span></div>
+      <div class="leg-mode"><label class="leg-mode"><span>交通方式</span><select class="leg-tr" data-day="${d.id}" data-id="${b.id}" aria-label="${esc(a.title)}到${esc(b.title)}的交通方式"><option value="">未設定</option>${TRS.map(o=>`<option${o===b.tr?' selected':''}>${esc(o)}</option>`).join('')}</select></label></div>
+      <label class="leg-lbl"><span>怎麼搭乘／注意事項</span><textarea class="leg-ta" rows="2" data-day="${d.id}" data-id="${b.id}" placeholder="例如：JR 山手線往新宿，搭 3 站；月台 2 號" aria-label="${esc(a.title)}到${esc(b.title)}的搭乘備註">${esc(b.trNote||'')}</textarea></label>
+      <div class="leg-acts"><a class="btn sm maplink" href="${esc(dirUrl(placeText(a),placeText(b),b.tr))}" target="_blank" rel="noopener">看路線</a><button type="button" class="btn sm" data-act="goto-item" data-day="${d.id}" data-id="${b.id}">看行程</button></div>
+    </li>`;
   }).join('');
   box.innerHTML=head+`<div class="daytabs" role="tablist" aria-label="選擇天數">${tabs}</div>
-  <div class="card group"><h3>Day ${idx+1} · ${md(d.date)}（${wk(d.date)}）${esc(d.title||'')}</h3>${chain?`<p class="leg-chain">${chain}</p>`:''}${legs?`<ul class="legs">${legs}</ul>`:`<p class="nothing" style="padding:.6rem 0 .4rem">${its.length?'這天只有一個地點，不需要交通區段。':'這天還沒有行程地點。'}</p>`}</div>`;
+  <div class="card group"><h3>Day ${idx+1} · ${md(d.date)}（${wk(d.date)}）${esc(d.title||'')}</h3>${chain?`<div class="leg-chain">${chain}</div>`:''}${legs?`<ul class="legs">${legs}</ul>`:`<p class="nothing" style="padding:.6rem 0 .4rem">${its.length?'這天只有一個地點，不需要交通區段。':'這天還沒有行程地點。'}</p>`}</div>`;
   const nt=$('#transit .daytabs');if(nt)nt.scrollLeft=sl;
 }
 function renderHotels(){
@@ -941,15 +966,13 @@ function renderHotels(){
     <div class="hotel-b"><div class="kvs">
       <div class="kv"><small>入住</small><b>${md(h.inDate)}（${wk(h.inDate)}）${esc(h.inTime)}</b></div>
       <div class="kv"><small>退房</small><b>${md(h.outDate)}（${wk(h.outDate)}）${esc(h.outTime)}</b></div>
-      ${h.addr?`<div class="kv w"><small>地址/網址</small><b>${esc(addrShow(h.addr))}</b><div class="acts"><button type="button" class="btn" data-act="copy" data-text="${esc(h.addr)}">${asUrl(h.addr)?'複製網址':'複製地址'}</button><a class="btn" href="${esc(mapUrl(h.addr))}" target="_blank" rel="noopener">開啟地圖</a></div></div>`:''}
-      ${h.code?`<div class="kv"><small>訂房編號</small><b>${esc(h.code)}</b><div class="acts"><button type="button" class="btn" data-act="copy" data-text="${esc(h.code)}">複製</button></div></div>`:''}
-      ${h.phone?`<div class="kv"><small>電話</small><b>${esc(h.phone)}</b><div class="acts"><button type="button" class="btn" data-act="copy" data-text="${esc(h.phone)}">複製</button></div></div>`:''}
+      ${h.addr?`<div class="kv w"><div class="acts"><a class="btn" href="${esc(mapUrl(h.addr))}" target="_blank" rel="noopener">地圖</a></div></div>`:''}
     </div>${h.note?`<p class="note">${nl(h.note)}</p>`:''}</div></article>`}).join(''):'<p class="empty">還沒有住宿資料。</p>')+
   `<button type="button" class="add edit-only" data-act="add-hotel">＋ 新增住宿</button>`;
 }
 
 const LISTS={
-  todo:{key:'todos',h:'待辦清單',sub:'依分類整理，想吃、想買、想拍的隨時加進來。可把照片或檔案拖到項目上，或點選項目後按 Ctrl+V 貼上',ph:'項目，例如：在淺草吃人形燒',cat:true},
+  todo:{key:'todos',h:'待辦清單',sub:'依分類整理，想吃、想買、想拍的隨時加進來。可切換不同天。',ph:'項目，例如：在淺草吃人形燒',cat:true},
   prep:{key:'prep',h:'出發前清單',sub:'出發前要處理的事，一項一項打勾',ph:'新增一項，例如：確認護照效期'},
   pack:{key:'pack',h:'行李清單',sub:'依分類整理，打包時逐項勾掉',ph:'物品，例如：充電線',cat:true}
 };
@@ -958,23 +981,55 @@ const TAGS={'kitty0101kk@gmail.com':'猴子有帶','chichimeow0212@gmail.com':'�
 const meEmail=()=>ui.unlocked&&ui.user&&ui.user.email?ui.user.email.toLowerCase():'';
 const isOn=(lid,i)=>{if(!LIST_PERUSER[lid]||!i.by)return !!i.done;const m=meEmail();return m?!!i.by[m]:Object.values(i.by).some(Boolean)};
 const tagHtml=(lid,i)=>{const m=meEmail();if(!LIST_PERUSER[lid]||!i.by||!m)return '';const t=[...new Set(EDITORS.map(e=>e.toLowerCase()).filter(e=>e!==m&&i.by[e]).map(e=>TAGS[e]||'有帶'))];return t.map(x=>`<span class="mk">${esc(x)}</span>`).join('')};
+
+function listRow(id,L,i){
+  return `<li class="${isOn(id,i)?'done':''}${phSel&&phSel.id===i.id&&phSel.list===id?' sel':''}" data-item="${i.id}" data-list="${id}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${isOn(id,i)?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span>${tagHtml(id,i)}</label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${id==='todo'?phStrip(id,i):''}</li>`;
+}
+
 function renderList(id){
+  if(id==='todo')return renderTodo();
   const L=LISTS[id],items=S[L.key],done=items.filter(i=>isOn(id,i)).length,pct=items.length?Math.round(done/items.length*100):0;
-  const row=i=>`<li class="${isOn(id,i)?'done':''}${phSel&&phSel.id===i.id&&phSel.list===id?' sel':''}" data-item="${i.id}" data-list="${id}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${isOn(id,i)?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span>${tagHtml(id,i)}</label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
   let body;
   if(!items.length)body='<p class="nothing">還沒有項目，編輯模式下可以從下方加入第一項。</p>';
   else if(L.cat){
     const cats=[];items.forEach(i=>{const c=i.cat||'其他';if(!cats.includes(c))cats.push(c)});
-    body=cats.map(c=>`<div class="group"><h3>${esc(c)}</h3><ul class="rows">${items.filter(i=>(i.cat||'其他')===c).map(row).join('')}</ul></div>`).join('');
-  }else body=`<div class="group"><ul class="rows">${items.map(row).join('')}</ul></div>`;
-  const cats=[...new Set(items.map(i=>i.cat).filter(Boolean).concat(id==='todo'?(S.todoCats||[]):[]))];
+    body=cats.map(c=>`<div class="group"><h3>${esc(c)}</h3><ul class="rows">${items.filter(i=>(i.cat||'其他')===c).map(i=>listRow(id,L,i)).join('')}</ul></div>`).join('');
+  }else body=`<div class="group"><ul class="rows">${items.map(i=>listRow(id,L,i)).join('')}</ul></div>`;
+  const cats=[...new Set(items.map(i=>i.cat).filter(Boolean))];
   const sel=cats.includes(ui.lastCat)?ui.lastCat:(cats[0]||'__new');
   const catUi=`<select name="catsel" class="catsel" aria-label="分類">${cats.map(c=>`<option value="${esc(c)}"${c===sel?' selected':''}>${esc(c)}</option>`).join('')}<option value="__new"${sel==='__new'?' selected':''}>＋ 新增分類…</option></select><input name="cat" placeholder="輸入新分類" aria-label="新分類"${sel==='__new'?'':' hidden'}>`;
   $('#'+id).innerHTML=secHead(id,L.h,L.sub)+
   `<div class="prog"><div class="track" aria-hidden="true"><div class="bar" style="width:${pct}%"></div></div><span>${done} / ${items.length}${items.length&&done===items.length?' 全部完成！':''}</span></div>
   <div class="card listcard">${body}<form class="addrow edit-only" data-add="${id}" autocomplete="off">${L.cat?catUi:''}<input name="text" placeholder="${esc(L.ph)}" aria-label="新增項目"><button class="btn primary" type="submit">加入</button></form></div>`;
-  if(id==='todo')hydratePhotos($('#todo'));
 }
+
+function renderTodo(){
+  const L=LISTS.todo,items=S.todos||[],days=sortedDays();
+  const tabs=[{id:'',label:'全部'},...days.map((d,i)=>({id:d.id,label:`Day ${i+1}`,sub:md(d.date)}))];
+  if(!tabs.some(t=>t.id===ui.todoDay))ui.todoDay='';
+  const filtered=items.filter(it=>{
+    if(!ui.todoDay)return true;
+    return !it.dayId||it.dayId===ui.todoDay;
+  });
+  const done=filtered.filter(i=>isOn('todo',i)).length,pct=filtered.length?Math.round(done/filtered.length*100):0;
+  const tabsUI=`<div class="daytabs todo-tabs" role="tablist" aria-label="選擇天數">${tabs.map(t=>`<button type="button" class="dt" data-act="todo-day" data-day="${t.id}" aria-selected="${t.id===ui.todoDay}"><small>${esc(t.label)}</small>${t.sub?`<b>${esc(t.sub)}</b>`:''}</button>`).join('')}</div>`;
+  let body;
+  if(!filtered.length)body=`<p class="nothing">還沒有項目，編輯模式下可以從下方加入第一項。</p>`;
+  else{
+    const cats=[];filtered.forEach(i=>{const c=i.cat||'其他';if(!cats.includes(c))cats.push(c)});
+    body=cats.map(c=>`<div class="group"><h3>${esc(c)}</h3><ul class="rows">${filtered.filter(i=>(i.cat||'其他')===c).map(i=>listRow('todo',L,i)).join('')}</ul></div>`).join('');
+  }
+  const cats=[...new Set(items.map(i=>i.cat).filter(Boolean).concat(S.todoCats||[]))];
+  const sel=cats.includes(ui.lastCat)?ui.lastCat:(cats[0]||'__new');
+  const catUi=`<select name="catsel" class="catsel" aria-label="分類">${cats.map(c=>`<option value="${esc(c)}"${c===sel?' selected':''}>${esc(c)}</option>`).join('')}<option value="__new"${sel==='__new'?' selected':''}>＋ 新增分類…</option></select><input name="cat" placeholder="輸入新分類" aria-label="新分類"${sel==='__new'?'':' hidden'}>`;
+  const dayOpts=`<select name="daysel" aria-label="歸屬天"><option value="">全部（不分天）</option>${days.map((d,i)=>`<option value="${d.id}"${ui.todoDay&&ui.todoDay===d.id?' selected':''}>Day ${i+1} · ${md(d.date)}</option>`).join('')}</select>`;
+  $('#todo').innerHTML=secHead('todo',L.h,L.sub)+
+  `<div class="prog"><div class="track" aria-hidden="true"><div class="bar" style="width:${pct}%"></div></div><span>${done} / ${filtered.length}${filtered.length&&done===filtered.length?' 全部完成！':''}</span></div>
+  ${tabsUI}
+  <div class="card listcard">${body}<form class="addrow edit-only" data-add="todo" autocomplete="off">${catUi}${dayOpts}<input name="text" placeholder="${esc(L.ph)}" aria-label="新增項目"><button class="btn primary" type="submit">加入</button></form></div>`;
+  hydratePhotos($('#todo'));
+}
+
 function phStrip(listId,i){
   if(listId!=='todo')return '';
   const ps=i.photos||[];
@@ -1077,10 +1132,10 @@ const CT={
   其他:{e:'✈️',st:'beach',ap:['',''],prep:[],pack:[],todo:[]}
 };
 function tplData(c,title,dep,back){
-  const T=CT[c]||CT.其他,li=t=>({id:uid(),text:t,done:false}),pk=(g,t)=>({id:uid(),cat:g,text:t,done:false});
+  const T=CT[c]||CT.其他,li=t=>({id:uid(),text:t,done:false}),pk=(g,t)=>({id:uid(),cat:g,text:t,done:false,dayId:''});
   const d0=parseD(dep),d1=parseD(back),n=d0&&d1?Math.min(14,Math.max(1,Math.round((d1-d0)/864e5)+1)):0;
   const days=[...Array(n)].map((_,i)=>{const d=new Date(d0);d.setDate(d.getDate()+i);const last=i===n-1&&n>1;
-    return {id:uid(),date:ymd(d),title:i===0?'抵達'+(T.ap[1]?'・'+T.ap[1].replace(/機場|國際/g,''):''):last?'返程':'自由安排',items:i===0?[{id:uid(),time:'',title:'抵達'+(T.ap[1]||'目的地'),tr:'飛機',note:'',must:false}]:last?[{id:uid(),time:'',title:'前往機場，搭機返台',tr:'飛機',note:'',must:false}]:[]}});
+    return {id:uid(),date:ymd(d),title:i===0?'抵達'+(T.ap[1]?'・'+T.ap[1].replace(/機場|國際/g,''):''):last?'返程':'自由安排',items:i===0?[{id:uid(),time:'',title:'抵達'+(T.ap[1]||'目的地'),tr:'飛機',note:'',must:false,addr:''}]:last?[{id:uid(),time:'',title:'前往機場，搭機返台',tr:'飛機',note:'',must:false,addr:''}]:[]}});
   const fl=T.ap[0]&&dep?[{id:uid(),dir:'去程',airline:'',no:'',fromCode:'TPE',fromCity:'台北桃園',toCode:T.ap[0],toCity:T.ap[1],date:dep,dep:'',arrDate:dep,arr:'',note:''},...(back?[{id:uid(),dir:'回程',airline:'',no:'',fromCode:T.ap[0],fromCity:T.ap[1],toCode:'TPE',toCity:'台北桃園',date:back,dep:'',arrDate:back,arr:'',note:''}]:[])]:[];
   return normalize({trip:{title,tagline:'',depart:dep?dep+'T09:00':'',back:back||''},cover:{mode:'scene',style:T.st,seed:1+Math.floor(Math.random()*1e6)},flights:fl,days,hotels:[],
     todoCats:[...new Set(T.todo.map(x=>x[0]))],todos:T.todo.map(x=>pk(...x)),prep:[...BP,...T.prep].map(li),pack:[...BK,...T.pack].map(x=>pk(...x))});
@@ -1099,21 +1154,37 @@ try{if(localStorage.getItem('sidecol')==='1')document.body.classList.add('sideco
 function setSideCol(on){document.body.classList.toggle('sidecol',on);try{localStorage.setItem('sidecol',on?'1':'0')}catch(e){}}
 function openSide(){if(DESK.matches)setSideCol(false);else document.body.classList.add('sideopen')}
 function closeSide(){if(DESK.matches)setSideCol(true);else document.body.classList.remove('sideopen')}
-function switchTrip(id){document.body.classList.remove('sideopen');setAct(id);S=curTrip().data;ui.day=ui.tday=null;renderAll();scrollTo({top:0})}
+function switchTrip(id){document.body.classList.remove('sideopen');setAct(id);S=curTrip().data;ui.day=ui.tday=null;ui.todoDay='';MV.day=null;renderAll();scrollTo({top:0})}
 function delTrip(){
   if(ROOT.trips.length<2){toast('至少要保留一趟旅程');return}
   const t=curTrip();
-  mutate(()=>{ROOT.trips.splice(ROOT.trips.indexOf(t),1);setAct(ROOT.trips[0].id);S=curTrip().data;ui.day=ui.tday=null},`已刪除「${t.name}」`,true);
+  mutate(()=>{ROOT.trips.splice(ROOT.trips.indexOf(t),1);setAct(ROOT.trips[0].id);S=curTrip().data;ui.day=ui.tday=null;ui.todoDay='';MV.day=null},`已刪除「${t.name}」`,true);
 }
 
-/* ---------- 導覽與章節觀察 ---------- */
+/* ---------- 導覽與章節順序 ---------- */
 function renderNav(){
-  const items=[
-    {id:'top',label:'總覽'},{id:'flights',label:'航班'},{id:'days',label:'行程'},
-    {id:'transit',label:'交通'},{id:'mapview',label:'看透透'},{id:'todo',label:'待辦'},
-    {id:'hotels',label:'住宿'},{id:'prep',label:'出發前'},{id:'pack',label:'行李'}
-  ];
-  $('#nav').innerHTML=items.map(x=>`<a href="#${x.id}">${x.label}</a>`).join('');
+  const order=S.nav.order.filter(id=>!S.nav.hidden.includes(id));
+  $('#nav').innerHTML=order.map(id=>`<a href="#${id}">${LABELS[id]}</a>`).join('');
+}
+function applyNavLayout(){
+  const main=$('main');
+  const foot=$('#foot');
+  const secs={};
+  $$('main > section').forEach(s=>{secs[s.id]=s});
+  // 先把 section 全部移除
+  Object.values(secs).forEach(s=>s.remove());
+  // 依 order 重新插入
+  S.nav.order.forEach(id=>{
+    const s=secs[id];
+    if(!s)return;
+    s.hidden=S.nav.hidden.includes(id);
+    main.insertBefore(s,foot);
+  });
+  // 未列在 order 的（理論上不會有）放最後
+  Object.keys(secs).forEach(id=>{
+    if(!S.nav.order.includes(id))main.insertBefore(secs[id],foot);
+  });
+  main.appendChild(foot);
 }
 let navIO=null;
 function setupNavObserver(){
@@ -1136,6 +1207,33 @@ function setupNavObserver(){
     });
   },{rootMargin:'-30% 0px -60% 0px',threshold:0});
   map.forEach((_,el)=>navIO.observe(el));
+}
+
+function openNavSettings(){
+  const order=S.nav.order,hidden=S.nav.hidden;
+  const rows=order.map((id,i)=>{
+    const isTop=id==='top';
+    const isHidden=hidden.includes(id);
+    return `<div class="nrow${isHidden?' is-off':''}">
+      <span class="nrow-no">${i+1}</span>
+      <span class="nrow-name">${LABELS[id]}</span>
+      <span class="nrow-acts">
+        <button type="button" class="mini" data-nav="up" data-id="${id}" ${i===0?'disabled':''} aria-label="上移" title="上移">↑</button>
+        <button type="button" class="mini" data-nav="down" data-id="${id}" ${i===order.length-1?'disabled':''} aria-label="下移" title="下移">↓</button>
+        <button type="button" class="mini icon-btn${isHidden?' off':''}" data-nav="toggle" data-id="${id}" ${isTop?'disabled':''} aria-label="${isHidden?'顯示':'隱藏'}" title="${isHidden?'顯示':'隱藏'}">${isHidden?SVG_EYE_CLOSE:SVG_EYE_OPEN}</button>
+      </span>
+    </div>`;
+  }).join('');
+  openSheet(`<div class="sheet-hd"><h3 id="sheet-t">選單設定</h3><button type="button" class="mini x sheet-x" data-sheet="close" aria-label="關閉">✕</button></div>
+    <p class="mut">調整章節順序與顯示。總覽固定在第一位且不可隱藏。</p>
+    <div class="nlist">${rows}</div>
+    <div class="sheet-btns"><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`);
+}
+function refreshNav(){
+  applyNavLayout();
+  renderNav();
+  renderMap();
+  setupNavObserver();
 }
 
 /* ================== 看透透 Map View ================== */
@@ -1193,9 +1291,11 @@ function itemLatLng(item){
 function renderMap(){
   const box=$('#mapview');
   if(!box)return;
+  if(box.hidden)return;
   const days=sortedDays();
 
   if(MV.map&&$('#mvMap')&&MV.map.getContainer()===$('#mvMap')){
+    if(!days.some(d=>d.id===MV.day))MV.day=days.length?days[0].id:null;
     renderMapTabs();
     renderMapDay();
     return;
@@ -1280,7 +1380,7 @@ function renderMapDay(){
     const icon=L.divIcon({
       className:'mv-marker',
       html:`<div class="mv-pin"><span>${idx+1}</span></div>`,
-      iconSize:[30,30],iconAnchor:[15,30],popupAnchor:[0,-32]
+      iconSize:[28,28],iconAnchor:[14,28],popupAnchor:[0,-30]
     });
     const marker=L.marker(ll,{icon,title:it.title}).addTo(group);
     marker.bindPopup(
@@ -1288,7 +1388,8 @@ function renderMapDay(){
         <div class="mv-pop-time">${esc(it.time||'--:--')}</div>
         <div class="mv-pop-title">${esc(it.title)}</div>
         ${it.note?`<div class="mv-pop-note">${esc(it.note)}</div>`:''}
-        ${it.addr?`<a class="mv-pop-link" href="${esc(mapUrl(it.addr))}" target="_blank" rel="noopener">開啟地圖</a>`:''}
+        <a class="mv-pop-link" href="${esc(mapUrl(it.addr||it.title))}" target="_blank" rel="noopener">地圖</a>
+        <button type="button" class="mv-pop-link" data-goto-day="${d.id}" data-goto-item="${it.id}">看行程</button>
       </div>`,
       {closeButton:true,autoPan:true,maxWidth:280}
     );
@@ -1298,7 +1399,7 @@ function renderMapDay(){
   });
 
   if(valid.length>1){
-    L.polyline(valid.map(v=>v.ll),{color:'#3E3A39',weight:3,dashArray:'6 8',opacity:.85,lineCap:'round'}).addTo(group);
+    L.polyline(valid.map(v=>v.ll),{color:'#3E3A39',weight:2,dashArray:'6 8',opacity:.85,lineCap:'round'}).addTo(group);
   }
   MV.layer=group.addTo(MV.map);
 
@@ -1307,6 +1408,24 @@ function renderMapDay(){
   if(valid.length===1)MV.map.setView(valid[0].ll,14);
   else if(valid.length>1)MV.map.fitBounds(group.getBounds().pad(0.15));
   else MV.map.setView([35.6812,139.7671],5);
+
+  // popup 內"看行程"按鈕需要手動綁定（Leaflet popup 不會冒泡到 document）
+  if(MV.layer){
+    group.eachLayer(l=>{
+      if(l.getPopup&&l.getPopup()){
+        l.getPopup().on&&l.getPopup().on('add',()=>{
+          const pop=l.getPopup().getElement();
+          if(!pop)return;
+          pop.querySelectorAll('[data-goto-day]').forEach(btn=>{
+            btn.addEventListener('click',ev=>{
+              ev.preventDefault();
+              gotoItemFromMap(btn.dataset.gotoDay,btn.dataset.gotoItem);
+            });
+          });
+        });
+      }
+    });
+  }
 }
 
 function renderMapList(items){
@@ -1328,14 +1447,24 @@ function renderMapList(items){
       <div class="mv-li-title">${esc(it.title)}</div>
       ${it.note?`<div class="mv-li-note">${esc(it.note)}</div>`:''}
       ${!ll?'<div class="mv-li-warn">缺少座標，未標在地圖上</div>':''}
+      <button type="button" class="mv-li-btn" data-goto-day="${esc(MV.day)}" data-goto-item="${esc(it.id)}">看行程</button>
     </div>`;
   }).join('');
 
   el.querySelectorAll('.mv-li[data-mvid]').forEach(li=>{
     if(li.classList.contains('noloc'))return;
-    li.addEventListener('click',()=>selectMapItem(li.dataset.mvid,false));
+    li.addEventListener('click',e=>{
+      if(e.target.closest('[data-goto-day]'))return;
+      selectMapItem(li.dataset.mvid,false);
+    });
     li.addEventListener('keydown',e=>{
       if(e.key==='Enter'||e.key===' '){e.preventDefault();selectMapItem(li.dataset.mvid,false)}
+    });
+  });
+  el.querySelectorAll('[data-goto-day]').forEach(btn=>{
+    btn.addEventListener('click',ev=>{
+      ev.stopPropagation();
+      gotoItemFromMap(btn.dataset.gotoDay,btn.dataset.gotoItem);
     });
   });
 }
@@ -1355,6 +1484,16 @@ function selectMapItem(id,fromMap){
     const li=$('#mvList .mv-li[data-mvid="'+id+'"]');
     if(li)li.scrollIntoView({block:'nearest',behavior:'smooth'});
   }
+}
+
+function gotoItemFromMap(dayId,itemId){
+  ui.day=dayId;
+  renderDays(true);
+  setTimeout(()=>{
+    const it=$('#it-'+itemId);
+    if(it){it.scrollIntoView({behavior:'smooth',block:'center'});it.classList.add('pop-in')}
+    else{const days=$('#days');if(days)days.scrollIntoView({behavior:'smooth'})}
+  },80);
 }
 
 /* ---------- 彈出視窗 / 表單 ---------- */
@@ -1392,7 +1531,11 @@ function openForm({title,fields,values={},onSave}){
       return `<label class="crow"><input type="checkbox" name="${f.key}"${v?' checked':''}><span class="box">${SVG.check}</span><span>${esc(f.label)}</span></label>`;
     }
     if(f.type==='select'){
-      return `<label class="${cls}">${span}<select name="${f.key}"${f.req?' required':''}>${(f.options||[]).map(o=>`<option value="${esc(o)}"${o===v?' selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
+      const opts=(f.options||[]).map(o=>{
+        if(Array.isArray(o))return `<option value="${esc(o[0])}"${o[0]===v?' selected':''}>${esc(o[1])}</option>`;
+        return `<option value="${esc(o)}"${o===v?' selected':''}>${esc(o)}</option>`;
+      }).join('');
+      return `<label class="${cls}">${span}<select name="${f.key}"${f.req?' required':''}>${opts}</select></label>`;
     }
     if(f.type==='textarea'){
       return `<label class="${cls}">${span}<textarea name="${f.key}" placeholder="${esc(f.ph||'')}"${f.req?' required':''}>${esc(v)}</textarea></label>`;
@@ -1485,7 +1628,7 @@ function editItem(id,dayId){
     {key:'time',label:'時間',type:'time',half:true},
     {key:'tr',label:'交通方式',type:'select',options:['',...TRS],half:true},
     {key:'title',label:'地點名稱',req:true},
-    {key:'addr',label:'地址/網址',ph:'可貼「緯度,經度」或 Google 地圖連結，會顯示在地圖上'},
+    {key:'addr',label:'地址/網址',ph:'可貼「緯度,經度」或 Google 地圖連結（不會顯示在頁面上，只會顯示按鈕）'},
     {key:'trNote',label:'交通備註',ph:'例如：JR 山手線往新宿，搭 3 站'},
     {key:'note',label:'備註',type:'textarea'},
     {key:'must',label:'必去景點',type:'checkbox'}
@@ -1495,16 +1638,14 @@ function editItem(id,dayId){
   },'已儲存行程')});
 }
 function editHotel(id){
-  const h=id?find(S.hotels,id):{name:'',addr:'',inDate:'',inTime:'15:00',outDate:'',outTime:'11:00',code:'',phone:'',note:''};
+  const h=id?find(S.hotels,id):{name:'',addr:'',inDate:'',inTime:'15:00',outDate:'',outTime:'11:00',note:''};
   openForm({title:id?'修改住宿':'新增住宿',fields:[
-    {key:'name',label:'住宿名稱',req:true},
+    {key:'name',label:'飯店/民宿名稱',req:true},
     {key:'addr',label:'地址/網址',ph:'可貼 Google 地圖連結'},
     {key:'inDate',label:'入住日期',type:'date',half:true},
     {key:'inTime',label:'入住時間',type:'time',half:true},
     {key:'outDate',label:'退房日期',type:'date',half:true},
     {key:'outTime',label:'退房時間',type:'time',half:true},
-    {key:'code',label:'訂房編號',half:true},
-    {key:'phone',label:'電話',half:true},
     {key:'note',label:'備註',type:'textarea',ph:'例如：櫃檯 22:00 關閉，晚到要先通知'}
   ],values:h,onSave:v=>mutate(()=>{
     if(id){const x=find(S.hotels,id);if(x)Object.assign(x,v)}
@@ -1513,12 +1654,17 @@ function editHotel(id){
 }
 function editLi(list,id){
   const L=LISTS[list],items=S[L.key];
-  const it=id?find(items,id):{text:'',cat:L.cat?(ui.lastCat||'其他'):''};
+  const it=id?find(items,id):{text:'',cat:L.cat?(ui.lastCat||'其他'):'',dayId:''};
   const fields=[{key:'text',label:'項目內容',req:true,ph:L.ph}];
   if(L.cat)fields.unshift({key:'cat',label:'分類',ph:'例如：吃、買、拍照',half:true});
+  if(list==='todo'){
+    const days=sortedDays();
+    const opts=[['','全部（不分天）'],...days.map((d,i)=>[d.id,`Day ${i+1} · ${md(d.date)}`])];
+    fields.unshift({key:'dayId',label:'歸屬天',type:'select',options:opts});
+  }
   openForm({title:id?'修改項目':'新增項目',fields,values:it,onSave:v=>mutate(()=>{
-    if(id){const x=find(items,id);if(x){x.text=v.text;if(L.cat)x.cat=v.cat||'其他'}}
-    else{const o={id:uid(),text:v.text,done:false};if(L.cat)o.cat=v.cat||'其他';items.push(o)}
+    if(id){const x=find(items,id);if(x){x.text=v.text;if(L.cat)x.cat=v.cat||'其他';if(list==='todo')x.dayId=v.dayId||''}}
+    else{const o={id:uid(),text:v.text,done:false};if(L.cat)o.cat=v.cat||'其他';if(list==='todo')o.dayId=v.dayId||'';items.push(o)}
     if(L.cat&&v.cat)ui.lastCat=v.cat;
   },'已儲存')});
 }
@@ -1531,7 +1677,7 @@ function delLi(list,id){
 function openBackup(){
   openSheet(`<div class="sheet-hd"><h3 id="sheet-t">備份與還原</h3><button type="button" class="mini x sheet-x" data-sheet="close" aria-label="關閉">✕</button></div>
     <p class="mut">複製下面文字即為備份，貼回即可還原（請先備份現有資料）。</p>
-    <textarea id="bkText" rows="8" style="width:100%;border:3px solid var(--ink);border-radius:16px;background:var(--white);padding:.5rem;font-family:monospace;font-size:.8rem">${esc(JSON.stringify(ROOT))}</textarea>
+    <textarea id="bkText" rows="8" style="width:100%;border:2px solid var(--ink);border-radius:14px;background:var(--white);padding:.5rem;font-family:monospace;font-size:.8rem">${esc(JSON.stringify(ROOT))}</textarea>
     <div class="sheet-btns">
       <button type="button" class="btn" data-sheet="copy">複製</button>
       <button type="button" class="btn danger" data-sheet="restore">還原</button>
@@ -1544,7 +1690,7 @@ function openBackup(){
         const t=JSON.parse($('#bkText').value);
         const n=normRoot(t);
         if(!n)throw new Error('bad');
-        setRoot(n);setAct(n.trips[0].id);ui.day=ui.tday=null;save();renderAll();closeSheet();toast('已還原');
+        setRoot(n);setAct(n.trips[0].id);ui.day=ui.tday=null;ui.todoDay='';MV.day=null;save();renderAll();closeSheet();toast('已還原');
       }catch(e){toast('還原失敗，格式不正確')}
     }
   },{lock:true});
@@ -1560,12 +1706,35 @@ function addTrip(){
   ],values:{country:'日本'},
   onSave:v=>mutate(()=>{
     const t={id:uid(),name:v.name,country:v.country,data:tplData(v.country,v.name,v.dep,v.back)};
-    ROOT.trips.push(t);setAct(t.id);S=t.data;ui.day=ui.tday=null;scrollTo({top:0});
+    ROOT.trips.push(t);setAct(t.id);S=t.data;ui.day=ui.tday=null;ui.todoDay='';MV.day=null;scrollTo({top:0});
   },'已新增旅程，已套用範本')});
 }
 
 /* ---------- 事件 ---------- */
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('sideopen'))document.body.classList.remove('sideopen')});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.body.classList.contains('sideopen'))document.body.classList.remove('sideopen')
+});
+
+// 選單設定（順序與顯示切換）
+document.addEventListener('click',e=>{
+  const nb=e.target.closest('[data-nav]');
+  if(!nb)return;
+  e.preventDefault();
+  const act=nb.dataset.nav,id=nb.dataset.id;
+  const order=S.nav.order.slice(),hidden=S.nav.hidden.slice();
+  const i=order.indexOf(id);
+  if(act==='up'&&i>0){order.splice(i-1,2,order[i],order[i-1])}
+  else if(act==='down'&&i>=0&&i<order.length-1){order.splice(i,2,order[i+1],order[i])}
+  else if(act==='toggle'&&id!=='top'){
+    if(hidden.includes(id)){const k=hidden.indexOf(id);hidden.splice(k,1)}
+    else hidden.push(id);
+  }else{return}
+  S.nav={order,hidden};
+  save();
+  openNavSettings();
+  refreshNav();
+});
+
 document.addEventListener('submit',e=>{
   const f=e.target.closest&&e.target.closest('.strename');if(!f)return;
   e.preventDefault();
@@ -1609,10 +1778,24 @@ document.addEventListener('click',e=>{
     case 'add-item':editItem(null,id);break;
     case 'edit-item':editItem(id,el.dataset.day);break;
     case 'tday':ui.tday=id;renderTransit();break;
+    case 'todo-day':ui.todoDay=el.dataset.day;renderTodo();break;
     case 'goto-item':{
       const dayId=el.dataset.day,itId=el.dataset.id;
       const d=find(S.days,dayId);
-      if(d){ui.day=d.id;renderDays(false);setTimeout(()=>{const it=$('#it-'+itId);if(it){it.scrollIntoView({behavior:'smooth',block:'center'});it.classList.add('pop-in')}},60)}
+      if(d){ui.day=d.id;renderDays(true);setTimeout(()=>{const it=$('#it-'+itId);if(it){it.scrollIntoView({behavior:'smooth',block:'center'});it.classList.add('pop-in')}},80)}
+      break;
+    }
+    case 'to-map':{
+      const dayId=el.dataset.day,itId=el.dataset.id;
+      MV.day=dayId;
+      // 確保 mapview 顯示中
+      if(S.nav.hidden.includes('mapview')){S.nav={order:S.nav.order,hidden:S.nav.hidden.filter(x=>x!=='mapview')};save();refreshNav()}
+      renderMap();
+      setTimeout(()=>{
+        const mv=$('#mapview');
+        if(mv)mv.scrollIntoView({behavior:'smooth'});
+        setTimeout(()=>selectMapItem(itId,false),250);
+      },80);
       break;
     }
     case 'add-hotel':editHotel();break;
@@ -1652,9 +1835,12 @@ document.addEventListener('submit',e=>{
     cat=inpVal||(selVal&&selVal!=='__new'?selVal:'其他');
     if(cat)ui.lastCat=cat;
   }
+  let dayId='';
+  if(id==='todo'&&f.elements.daysel){dayId=f.elements.daysel.value||''}
   mutate(()=>{
     const o={id:uid(),text,done:false};
     if(L.cat)o.cat=cat||'其他';
+    if(id==='todo')o.dayId=dayId;
     S[L.key].push(o);
     if(id==='todo'&&cat&&!(S.todoCats||[]).includes(cat))S.todoCats=[...(S.todoCats||[]),cat];
   });
@@ -1681,6 +1867,25 @@ document.addEventListener('change',e=>{
       if(inp){inp.hidden=cb.value!=='__new';if(!inp.hidden)inp.focus()}
     }
   }
+  if(cb.matches&&cb.matches('.leg-tr')){
+    const dayId=cb.dataset.day,itemId=cb.dataset.id;
+    const d=find(S.days,dayId);if(!d)return;
+    const it=find(d.items,itemId);if(!it)return;
+    mutate(()=>{it.tr=cb.value});
+  }
+});
+
+// 交通備註輸入（失焦時儲存）
+document.addEventListener('focusout',e=>{
+  const ta=e.target;
+  if(!ta.matches||!ta.matches('.leg-ta'))return;
+  const dayId=ta.dataset.day,itemId=ta.dataset.id;
+  const d=find(S.days,dayId);if(!d)return;
+  const it=find(d.items,itemId);if(!it)return;
+  const v=ta.value;
+  if(v===(it.trNote||''))return;
+  it.trNote=v;
+  save();
 });
 
 /* 拖放排序與檔案拖放 */
@@ -1741,7 +1946,10 @@ document.addEventListener('drop',e=>{
 document.addEventListener('click',e=>{
   if(e.target.closest('button,input,label,a'))return;
   const li=e.target.closest&&e.target.closest('#todo li[data-item]');
-  if(!li){if(phSel){phSel=null;$$('#todo li[data-item]').forEach(x=>x.classList.remove('sel'))}return}
+  if(!li){
+    if(phSel){phSel=null;$$('#todo li[data-item]').forEach(x=>x.classList.remove('sel'))}
+    return;
+  }
   phSel={list:li.dataset.list,id:li.dataset.item};
   $$('#todo li[data-item]').forEach(x=>x.classList.toggle('sel',x===li));
 });
@@ -1756,23 +1964,18 @@ document.addEventListener('paste',e=>{
   if(files.length){e.preventDefault();uploadPhotos(files,phSel)}
 });
 
-/* 浮動按鈕 */
-const fab=$('#fab');
-if(fab){
-  fab.addEventListener('click',()=>openSide());
-  addEventListener('scroll',()=>{
-    const nav=$('#navbar');
-    if(!nav)return;
-    const show=nav.getBoundingClientRect().bottom<0;
-    fab.classList.toggle('on',show);
-  },{passive:true});
-}
+/* 選單設定按鈕 */
+const navMenu=$('#navMenu');
+if(navMenu)navMenu.addEventListener('click',openNavSettings);
+
+/* 編輯按鈕 */
 const editBtn=$('#editBtn');
 if(editBtn)editBtn.addEventListener('click',()=>setEditing(!ui.editing));
 
 /* ---------- 初始化 ---------- */
 function renderAll(){
   renderTrips();
+  applyNavLayout();
   renderNav();
   renderHero();
   renderFlights();
