@@ -278,6 +278,16 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 #toast[hidden]{display:none}
 #toast button{border:3px solid var(--ink);border-radius:999px;background:var(--white);padding:0 .8rem;line-height:1.5}
 
+.cover-img{aspect-ratio:360/250;background:var(--sand);border-bottom:3px solid var(--ink)}
+.cover-img img{display:block;width:100%;height:100%;object-fit:cover}
+#tripbar{margin-bottom:-1rem}
+.dt.tr b{font-size:1.3rem;line-height:1.2}
+.dt.tr small{color:var(--ink);font-size:.8rem;max-width:7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.covbtns{display:flex;flex-wrap:wrap;gap:.5rem;margin:.4rem 0 .8rem}
+.btn.sel{background:var(--yellow)}
+.tw{fill:var(--white);stroke:none;animation:tw 2.4s ease-in-out infinite}
+.wv{animation:drift 5s ease-in-out infinite alternate}
+@keyframes tw{0%,100%{opacity:.25}50%{opacity:1}}
 .sun-rays{transform-box:fill-box;transform-origin:center;animation:spin 40s linear infinite}
 .sun-core{transform-box:fill-box;transform-origin:center;animation:breathe 4s ease-in-out infinite}
 .cloud{animation:drift 9s ease-in-out infinite alternate}
@@ -322,6 +332,7 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 
 <main class="wrap">
   <div class="hint edit-only" role="note">編輯中：點 ✎ 修改、＋ 新增，改完按右上角「完成」。刪除後可以按「復原」。修改會即時同步給其他人。</div>
+  <section id="tripbar"></section>
   <section id="top"></section>
   <section id="flights" class="sec"></section>
   <section id="days" class="sec"></section>
@@ -335,6 +346,7 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 
 <button id="fab" class="fab" type="button" aria-label="顯示選單（可拖曳移動）">☰</button>
 <input id="phInput" type="file" multiple hidden>
+<input id="covInput" type="file" accept="image/*" hidden>
 <div id="toast" role="status" hidden></div>
 <div id="scrim" class="scrim" hidden><div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t"></div></div>
 
@@ -422,19 +434,29 @@ function normalize(o){
   if(!o||typeof o!=='object'||!o.trip) return null;
   const arr=k=>Array.isArray(o[k])?o[k]:[];
   const fix=a=>a.map(x=>({...x,id:x.id||uid()}));
-  return {sample:!!o.sample,trip:{title:'',tagline:'',depart:'',back:'',...o.trip},flights:fix(arr('flights')),
+  return {sample:!!o.sample,cover:{mode:'scene',style:'classic',seed:1,...(o.cover||{})},trip:{title:'',tagline:'',depart:'',back:'',...o.trip},flights:fix(arr('flights')),
     days:arr('days').map(d=>({...d,id:d.id||uid(),items:fix(Array.isArray(d.items)?d.items:[])})),
     hotels:fix(arr('hotels')),todos:fix(arr('todos')),todoCats:Array.isArray(o.todoCats)?o.todoCats.slice():[...new Set(arr('todos').map(i=>i.cat||'未分類'))],prep:fix(arr('prep')),pack:fix(arr('pack'))};
 }
-function load(){try{const r=localStorage.getItem(KEY);if(r){const n=normalize(JSON.parse(r));if(n)return n}}catch(e){}return sample()}
-let S=load();
+function normRoot(o){
+  if(o&&Array.isArray(o.trips)){const ts=o.trips.map(t=>({id:t.id||uid(),name:t.name||'旅程',country:t.country||'其他',data:normalize(t.data)})).filter(t=>t.data);return ts.length?{trips:ts}:null}
+  const d=normalize(o);return d?{trips:[{id:'t1',name:(d.trip.title||'我的旅行').slice(0,10),country:'日本',data:d}]}:null;
+}
+const mkRoot=()=>({trips:[{id:'t1',name:'東京・京都',country:'日本',data:normalize(sample())}]});
+function load(){try{const r=localStorage.getItem(KEY);if(r){const n=normRoot(JSON.parse(r));if(n)return n}}catch(e){}return mkRoot()}
+const curTrip=()=>ROOT.trips.find(t=>t.id===ui.trip)||ROOT.trips[0];
+function setAct(id){ui.trip=id;try{localStorage.setItem('tabi-techo-act',id)}catch(e){}}
+function setRoot(r){ROOT=r;S=curTrip().data}
+let ROOT=load(),S=null;
 let saveWarned=false;
 function save(){
-  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){if(!saveWarned){saveWarned=true;toast('這個瀏覽器無法儲存，重新整理後資料會消失。可到頁尾「備份與還原」複製備份。')}}
+  try{localStorage.setItem(KEY,JSON.stringify(ROOT))}catch(e){if(!saveWarned){saveWarned=true;toast('這個瀏覽器無法儲存，重新整理後資料會消失。可到頁尾「備份與還原」複製備份。')}}
   push();
 }
 // unlocked＝可編輯：未設定 Firebase 時為本機模式（直接可編輯）；設定後需用允許名單內的 Google 帳號登入
-const ui={editing:false,day:null,lastCat:'其他',unlocked:!FB_ON,user:null};
+const ui={editing:false,day:null,lastCat:'其他',unlocked:!FB_ON,user:null,trip:null};
+try{ui.trip=localStorage.getItem('tabi-techo-act')}catch(e){}
+S=curTrip().data;
 let auth=null,AU=null;
 /* 照片：縮圖後存成獨立文件（雲端：Firestore photos 集合；本機模式：localStorage） */
 const phCache=new Map(),phLoading=new Set();
@@ -457,13 +479,13 @@ function push(){
   if(!dbDoc||!ui.unlocked||firstSnap)return;
   clearTimeout(pushT);
   pushT=setTimeout(async()=>{
-    const json=JSON.stringify(S);
+    const json=JSON.stringify(ROOT);
     if(json===lastJson)return;
     setSync('wait');
     try{
       await dbDoc.set({json,at:Date.now()});
       lastJson=json;remoteJson=json;setSync('live');
-      if(JSON.stringify(S)!==json)push();
+      if(JSON.stringify(ROOT)!==json)push();
     }catch(e){
       if(/perm|denied|grant|auth/i.test((e&&e.code)||'')){
         setSync('ro');toast('沒有寫入權限，這次的修改沒有同步');
@@ -478,13 +500,13 @@ const busy=()=>{
   return !!(a&&a.matches&&a.matches('main input[name="text"],main input[name="cat"],main input[name="newcat"],main textarea.leg-ta')&&a.value);
 };
 function applyRemote(json,force){
-  if(json===JSON.stringify(S)){lastJson=json;return}
-  if(!force&&ui.unlocked&&JSON.stringify(S)!==lastJson)return; // 自己還有沒送出的修改，以自己的為準
+  if(json===JSON.stringify(ROOT)){lastJson=json;return}
+  if(!force&&ui.unlocked&&JSON.stringify(ROOT)!==lastJson)return; // 自己還有沒送出的修改，以自己的為準
   if(!force&&busy()){deferred=json;setTimeout(flush,1500);return}
-  let n=null;try{n=normalize(JSON.parse(json))}catch(e){}
+  let n=null;try{n=normRoot(JSON.parse(json))}catch(e){}
   if(!n)return;
-  S=n;lastJson=json;
-  try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}
+  setRoot(n);lastJson=json;
+  try{localStorage.setItem(KEY,JSON.stringify(ROOT))}catch(e){}
   renderAll();
 }
 function flush(){
@@ -554,8 +576,8 @@ function toast(msg,undo){
   if(undo)$('#undoBtn').onclick=()=>{undo();t.hidden=true};
 }
 function mutate(fn,msg,withUndo){
-  const snap=JSON.stringify(S);fn();save();renderAll();
-  if(msg)toast(msg,withUndo?()=>{S=normalize(JSON.parse(snap));save();renderAll()}:null);
+  const snap=JSON.stringify(ROOT);fn();save();renderAll();
+  if(msg)toast(msg,withUndo?()=>{setRoot(normRoot(JSON.parse(snap)));save();renderAll()}:null);
 }
 async function copyText(t){
   try{await navigator.clipboard.writeText(t);return true}catch(e){
@@ -621,6 +643,57 @@ function dayIll(d,idx){
 }
 
 /* ---------- 版面渲染 ---------- */
+const STY={classic:'經典新幹線',beach:'海灘假期',night:'夜晚城市',balloon:'熱氣球',sakura:'櫻花飄落'};
+const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+function genCover(st,seed){
+  if(!STY[st]||st==='classic')return SVG.hero;
+  const R=rng(seed||1),r=(a,b)=>a+R()*(b-a),pk=a=>a[Math.floor(R()*a.length)],f=n=>n.toFixed(0);
+  const cl=(x,y,b)=>`<g class="cloud${b?' b':''}"><g transform="translate(${f(x)} ${f(y)})"><path class="fw" d="M0 22Q-2 10 10 9Q14 -2 27 2Q36 -4 44 7Q58 7 58 22Z"/></g></g>`;
+  const sun=(x,y,c)=>`<g class="sun-rays"><path d="M${x+34} ${y}h8M${x-42} ${y}h8M${x} ${y+34}v8M${x} ${y-42}v8"/></g><circle class="sun-core ${c||'fc'}" cx="${x}" cy="${y}" r="24"/>`;
+  const pl=(x,y)=>`<g transform="translate(${f(x)} ${f(y)})"><g class="plane"><path class="fw" d="M-14 0L8 -3Q15 -3 16 0Q15 3 8 3Z"/><path class="fb" d="M-2 0L-8 -9L-3 -9L6 -1Z"/><path class="fb" d="M-2 0L-8 9L-3 9L6 1Z"/><path class="fc" d="M-14 0L-18 -6L-14 -6L-9 -1Z"/></g></g>`;
+  const bgc=pk(['fy','fb','fg']);
+  let o=`<svg class="ill hero-ill" viewBox="0 0 360 250" role="img" aria-label="插圖：${STY[st]}">`,b='';
+  if(st==='beach'){
+    o+=`<rect width="360" height="250" class="${bgc} ns"/>`+sun(r(60,300),r(50,70))+cl(r(10,120),r(25,60))+cl(r(190,290),r(70,100),1)+pl(r(40,300),r(30,50));
+    o+=`<rect y="150" width="360" height="100" class="fb ns"/><g class="wv"><path class="fb" d="M-30 160q15-10 30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0"/><path class="fb" d="M-10 185q15-10 30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0t30 0"/></g>`;
+    o+=`<path class="fy" d="M0 220Q120 196 250 212T360 206V250H0Z"/><g class="bobber"><path class="fw" d="M${f(r(60,160))} 168v-34l22 34z"/><path class="fc" d="M${f(r(60,160))+0} 172h0"/></g>`;
+    const px=r(250,320);o+=`<g class="tree"><path class="fi" d="M${f(px)} 214Q${f(px-8)} 170 ${f(px+4)} 130"/><path class="fg" d="M${f(px+4)} 130q-30-6-40 14q22-14 40-4zM${f(px+4)} 130q30-8 42 12q-24-12-42-2zM${f(px+4)} 130q-6-28-30-30q22 6 30 30zM${f(px+4)} 130q8-26 34-26q-26 8-34 26z"/></g>`;
+  }else if(st==='night'){
+    o+=`<rect width="360" height="250" style="fill:#4B5A7E;stroke:none"/><circle class="fy" cx="${f(r(60,300))}" cy="${f(r(40,70))}" r="20"/>`;
+    for(let i=0;i<16;i++)o+=`<circle class="tw" cx="${f(r(5,355))}" cy="${f(r(5,110))}" r="${r(1,2.2).toFixed(1)}" style="animation-delay:-${r(0,2.4).toFixed(1)}s"/>`;
+    o+=pl(r(40,300),r(80,110));
+    for(let x=-5;x<360;){const w=r(26,44),h=r(50,120),c=pk(['fb','fc','fw','fg']);o+=`<rect class="${c}" x="${f(x)}" y="${f(215-h)}" width="${f(w)}" height="${f(h)}"/>`;
+      for(let y=215-h+10;y<205;y+=16)for(let k=8;k<w-8;k+=12)if(R()>.35)o+=`<rect class="fy" x="${f(x+k)}" y="${f(y)}" width="6" height="8" stroke-width="1.5"/>`;x+=w+r(2,8)}
+    o+=`<path class="fi" d="M0 215H360V250H0Z"/>`;
+  }else if(st==='balloon'){
+    o+=`<rect width="360" height="250" class="${bgc==='fg'?'fb':bgc} ns"/>`+sun(r(50,310),r(45,65),'fy')+cl(r(10,120),r(80,110))+cl(r(200,290),r(30,60),1);
+    o+=`<path class="fg" d="M0 190L70 120L130 175L200 100L280 180L330 140L360 175V250H0Z"/><path class="fw" d="M0 215Q90 195 180 215T360 210V250H0Z"/>`;
+    for(let i=0;i<3;i++){const x=60+i*110+r(-20,20),y=r(30,90),c=pk(['fc','fy','fw']);o+=`<g class="bobber" style="animation-delay:-${i}s"><g transform="translate(${f(x)} ${f(y)})"><path class="${c}" d="M0 0C-26 0-26 40 -6 58h12C26 40 26 0 0 0z"/><path d="M-6 58L-6 70M6 58L6 70"/><rect class="fi" x="-7" y="70" width="14" height="9" rx="2"/></g></g>`}
+  }else{
+    o+=`<rect width="360" height="250" class="${pk(['fy','fb'])} ns"/>`+sun(r(240,320),r(45,60))+cl(r(10,100),r(30,60))+`<path class="fg" d="M0 200Q90 170 180 196T360 190V250H0Z"/>`;
+    const x=r(40,100);o+=`<g class="tree"><path class="fi" d="M${f(x)} 215Q${f(x+6)} 170 ${f(x-4)} 120M${f(x+3)} 170Q${f(x+30)} 150 ${f(x+46)} 136"/>`;
+    for(let i=0;i<9;i++)o+=`<circle class="fc" cx="${f(x+r(-45,55))}" cy="${f(r(70,150))}" r="${f(r(14,24))}"/>`;o+='</g>';
+    for(let i=0;i<14;i++)o+=`<circle class="snow" cx="${f(r(5,355))}" cy="0" r="${r(2,3.5).toFixed(1)}" style="fill:var(--coral);animation-duration:${r(7,12).toFixed(1)}s;animation-delay:-${r(0,10).toFixed(1)}s"/>`;
+    o+=`<path class="fw" d="M0 222Q90 212 180 222T360 218V250H0Z"/>`;
+  }
+  return o+'</svg>';
+}
+function coverHtml(){const c=S.cover;return c.mode==='custom'&&c.img?`<div class="cover-img"><img data-ph="${c.img}" alt="封面照片"></div>`:genCover(c.style,c.seed)}
+function coverSheet(){
+  const c=S.cover,set=o=>{mutate(()=>{S.cover={...S.cover,...o}});coverSheet()};
+  openSheet(`<h3 id="sheet-t">更換封面</h3><p class="mut">選一種動態插圖，或按「隨機生成」每次都有不同的畫面，也可以上傳自己的照片。</p><div class="covbtns"><button type="button" class="btn primary" data-sheet="rnd">🎲 隨機生成</button><button type="button" class="btn ${c.mode==='custom'?'sel':''}" data-sheet="up">🖼 上傳自訂照片</button></div><p class="mut">插圖樣式</p><div class="covbtns">${Object.keys(STY).map(k=>`<button type="button" class="btn sm ${c.mode!=='custom'&&c.style===k?'sel':''}" data-sheet="st" data-k="${k}">${STY[k]}</button>`).join('')}</div><div class="sheet-btns"><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
+    rnd:()=>set({mode:'scene',style:pk(Object.keys(STY).filter(k=>k!=='classic')),seed:1+Math.floor(Math.random()*1e6)}),
+    st:b=>set({mode:'scene',style:b.dataset.k,seed:S.cover.seed>1?S.cover.seed:1+Math.floor(Math.random()*1e6)}),
+    up:()=>$('#covInput').click()
+  });
+  function pk(a){return a[Math.floor(Math.random()*a.length)]}
+}
+$('#covInput').addEventListener('change',async e=>{
+  const f=e.target.files[0];e.target.value='';if(!f)return;
+  toast('封面處理中…');
+  try{const d=await compressImg(f),pid=uid()+uid();await PH.set(pid,d);phCache.set(pid,d);mutate(()=>{S.cover={...S.cover,mode:'custom',img:pid}},'已換成自訂封面');if(!$('#scrim').hidden)closeSheet()}
+  catch(err){toast('封面上傳失敗，請換一張較小的圖片再試')}
+});
 const editBtns=(act,id,extra='')=>`<span class="eb edit-only"><button type="button" class="mini" data-act="edit-${act}" data-id="${id}" ${extra} aria-label="編輯">✎</button></span>`;
 const secHead=(id,title,sub)=>`<h2 class="sec-h"><span class="ico ${({flights:'bg-b',days:'bg-c',transit:'bg-b',todo:'bg-y',hotels:'bg-y',prep:'bg-g',pack:'bg-c'})[id]}">${SVG.ico[id]}</span>${esc(title)}</h2>${sub?`<p class="sec-sub">${esc(sub)}</p>`:''}`;
 
@@ -628,15 +701,16 @@ function renderHero(){
   const t=S.trip,dep=t.depart?t.depart.slice(0,10):'';
   const range=dep&&t.back?`${md(dep)}（${wk(dep)}）– ${md(t.back)}（${wk(t.back)}）`:'';
   const nd=dep&&t.back?Math.round((parseD(t.back)-parseD(dep))/864e5):0;
-  $('#top').innerHTML=`<div class="card hero">${SVG.hero}<div class="hero-body">
+  $('#top').innerHTML=`<div class="card hero">${coverHtml()}<div class="hero-body">
     ${S.sample?`<div class="banner"><p>目前是範例行程。按右上角「編輯」，就能把標題、航班、行程都改成你自己的。</p><button type="button" class="mini edit-only" data-act="dismiss" aria-label="關閉提示">✕</button></div>`:''}
     <div class="chips">${range?`<span class="chip y">${esc(range)}</span>`:''}${nd>0?`<span class="chip">${nd+1} 天 ${nd} 夜</span>`:''}</div>
     <h1>${esc(t.title||'我的旅行')}</h1>
     ${t.tagline?`<p class="tagline">${esc(t.tagline)}</p>`:''}
     <div class="cd-label" id="cdl">出發倒數</div><div class="cd" id="cd" role="timer" aria-live="off"></div>
     <button type="button" class="btn sm edit-only" style="align-self:flex-start" data-act="edit-trip">✎ 修改標題與日期</button>
+    <div class="edit-only" style="display:flex;gap:.5rem;flex-wrap:wrap"><button type="button" class="btn sm" data-act="cover">🎨 更換封面</button><button type="button" class="btn sm danger" data-act="del-trip">🗑 刪除此旅程</button></div>
   </div></div>`;
-  tick();
+  hydratePhotos($('#top'));tick();
 }
 function tick(){
   const cd=$('#cd');if(!cd)return;
@@ -830,7 +904,42 @@ function renderFoot(){
   $('#foot').innerHTML=`${SVG.cat}<p>旅途愉快！內容會即時同步給所有開啟這個頁面的人；沒連上同步時只會存在這台裝置，換手機或清除資料前，記得先備份。</p><p id="syncTxt"></p>${FB_ON?`<p>${ui.user?'已登入：'+esc(ui.user.email||'')+(ui.unlocked?'':'（無編輯權限）'):'尚未登入 Google'}</p>`:''}<div class="foot-btns">${FB_ON?(ui.user?'<button type="button" class="btn sm" data-act="logout">登出</button>':'<button type="button" class="btn sm" data-act="login">使用 Google 登入</button>'):''}<button type="button" class="btn sm" data-act="backup">備份與還原</button></div>`;
   setSync(syncState);
 }
-function renderAll(){renderHero();renderFlights();renderDays(false);renderTransit();renderHotels();['todo','prep','pack'].forEach(renderList);renderFoot();}
+const BP=['確認護照效期（建議 6 個月以上）','買網卡或 eSIM','準備外幣現金','辦理旅平險','下載離線地圖與翻譯','預訂住宿與交通'];
+const BK=[['證件錢包','護照'],['證件錢包','電子機票／登機證'],['證件錢包','現金與信用卡'],['電子用品','手機與充電線'],['電子用品','行動電源（隨身帶，不可託運）'],['盥洗與藥品','牙刷牙膏'],['盥洗與藥品','常備藥'],['其他','折疊傘']];
+const CT={
+  日本:{e:'🇯🇵',st:'sakura',ap:['NRT','東京成田'],prep:['填寫 Visit Japan Web','預訂新幹線與熱門景點'],pack:[['電子用品','轉接頭（日本插座與台灣相同）']],todo:[['吃','拉麵、壽司'],['買','藥妝店採買'],['拍照','神社與鳥居']]},
+  韓國:{e:'🇰🇷',st:'night',ap:['ICN','首爾仁川'],prep:['確認入境申報／K-ETA 規定','下載 Naver Map、Kakao Metro','預訂熱門餐廳'],pack:[['電子用品','轉接頭（韓國為 220V 雙圓孔）'],['證件錢包','T-money 交通卡']],todo:[['吃','韓式烤肉、炸雞'],['買','Olive Young 美妝'],['拍照','景福宮、漢江夜景']]},
+  泰國:{e:'🇹🇭',st:'beach',ap:['BKK','曼谷素萬那普'],prep:['確認是否需填 TDAC 入境卡','下載 Grab、Bolt'],pack:[['衣物','輕薄透氣衣物與泳衣'],['其他','防曬乳與防蚊液'],['電子用品','萬用轉接頭']],todo:[['吃','泰式奶茶、芒果糯米飯'],['買','夜市小物'],['拍照','大皇宮、鄭王廟']]},
+  越南:{e:'🇻🇳',st:'beach',ap:['SGN','胡志明新山一'],prep:['確認簽證／電子簽規定','下載 Grab'],pack:[['其他','防曬乳與防蚊液'],['衣物','輕薄透氣衣物']],todo:[['吃','河粉、法國麵包'],['買','咖啡與手工藝'],['拍照','古城與海岸']]},
+  新加坡:{e:'🇸🇬',st:'night',ap:['SIN','新加坡樟宜'],prep:['填寫 SG Arrival Card','預約熱門景點門票'],pack:[['電子用品','英規三孔轉接頭'],['衣物','輕薄衣物與外套（冷氣強）']],todo:[['吃','海南雞飯、小販中心'],['買','伴手禮'],['拍照','濱海灣花園']]},
+  歐洲:{e:'🇪🇺',st:'balloon',ap:['CDG','巴黎戴高樂'],prep:['確認申根簽證／ETIAS 規定','規劃跨國交通（火車、廉航）','留意扒手並保管財物'],pack:[['電子用品','歐規轉接頭'],['證件錢包','歐元現金與可國外刷卡的信用卡'],['衣物','好走的鞋']],todo:[['吃','當地特色餐廳'],['買','伴手禮'],['拍照','地標與老城區']]},
+  美國:{e:'🇺🇸',st:'balloon',ap:['LAX','洛杉磯'],prep:['申請 ESTA／簽證','確認入境規定','準備小費預算'],pack:[['電子用品','美規轉接頭'],['證件錢包','國際駕照（租車用）']],todo:[['吃','漢堡、在地美食'],['買','Outlet 採買'],['拍照','經典地標']]},
+  其他:{e:'✈️',st:'beach',ap:['',''],prep:[],pack:[],todo:[]}
+};
+function tplData(c,title,dep,back){
+  const T=CT[c]||CT.其他,li=t=>({id:uid(),text:t,done:false}),pk=(g,t)=>({id:uid(),cat:g,text:t,done:false});
+  const d0=parseD(dep),d1=parseD(back),n=d0&&d1?Math.min(14,Math.max(1,Math.round((d1-d0)/864e5)+1)):0;
+  const days=[...Array(n)].map((_,i)=>{const d=new Date(d0);d.setDate(d.getDate()+i);const last=i===n-1&&n>1;
+    return {id:uid(),date:ymd(d),title:i===0?'抵達'+(T.ap[1]?'・'+T.ap[1].replace(/機場|國際/g,''):''):last?'返程':'自由安排',items:i===0?[{id:uid(),time:'',title:'抵達'+(T.ap[1]||'目的地'),tr:'飛機',note:'',must:false}]:last?[{id:uid(),time:'',title:'前往機場，搭機返台',tr:'飛機',note:'',must:false}]:[]}});
+  const fl=T.ap[0]&&dep?[{id:uid(),dir:'去程',airline:'',no:'',fromCode:'TPE',fromCity:'台北桃園',toCode:T.ap[0],toCity:T.ap[1],date:dep,dep:'',arrDate:dep,arr:'',note:''},...(back?[{id:uid(),dir:'回程',airline:'',no:'',fromCode:T.ap[0],fromCity:T.ap[1],toCode:'TPE',toCity:'台北桃園',date:back,dep:'',arrDate:back,arr:'',note:''}]:[])]:[];
+  return normalize({trip:{title,tagline:'',depart:dep?dep+'T09:00':'',back:back||''},cover:{mode:'scene',style:T.st,seed:1+Math.floor(Math.random()*1e6)},flights:fl,days,hotels:[],
+    todoCats:[...new Set(T.todo.map(x=>x[0]))],todos:T.todo.map(x=>pk(...x)),prep:[...BP,...T.prep].map(li),pack:[...BK,...T.pack].map(x=>pk(...x))});
+}
+function renderTrips(){
+  $('#tripbar').innerHTML=`<div class="daytabs" role="tablist" aria-label="旅程分頁">${ROOT.trips.map(t=>`<button type="button" class="dt tr" role="tab" aria-selected="${t.id===curTrip().id}" data-act="trip" data-id="${t.id}"><b>${(CT[t.country]||CT.其他).e}</b><small>${esc(t.name)}</small></button>`).join('')}<button type="button" class="dt addday" data-act="add-trip" aria-label="新增旅程">＋</button></div>`;
+}
+function switchTrip(id){setAct(id);S=curTrip().data;ui.day=ui.tday=null;renderAll();scrollTo({top:0})}
+function addTrip(){
+  const cs=Object.keys(CT);
+  openForm({title:'新增旅程',fields:[{key:'name',label:'分頁名稱',req:true,ph:'例如：首爾 4 天'},{key:'country',label:'國家（會套用對應範本）',type:'select',options:cs},{key:'dep',label:'出發日期',type:'date',half:true},{key:'back',label:'回程日期',type:'date',half:true}],values:{country:'日本'},
+    onSave:v=>mutate(()=>{const t={id:uid(),name:v.name,country:v.country,data:tplData(v.country,v.name,v.dep,v.back)};ROOT.trips.push(t);setAct(t.id);S=t.data;ui.day=ui.tday=null;scrollTo({top:0})},'已新增旅程，已套用'+'範本')});
+}
+function delTrip(){
+  if(ROOT.trips.length<2){toast('至少要保留一趟旅程');return}
+  const t=curTrip();
+  mutate(()=>{ROOT.trips.splice(ROOT.trips.indexOf(t),1);setAct(ROOT.trips[0].id);S=curTrip().data;ui.day=ui.tday=null},`已刪除「${t.name}」`,true);
+}
+function renderAll(){renderTrips();renderHero();renderFlights();renderDays(false);renderTransit();renderHotels();['todo','prep','pack'].forEach(renderList);renderFoot();}
 
 /* ---------- 彈出視窗 ---------- */
 let lastFocus=null,sheetActs={};
@@ -941,7 +1050,8 @@ function editItem(dayId,id){
   openForm({title:'編輯行程',fields:F.item,values:x,onSave:v=>mutate(()=>Object.assign(x,v)),onDelete:()=>mutate(()=>{d.items.splice(d.items.indexOf(x),1)},'已刪除行程',true)});
 }
 function editTrip(){
-  openForm({title:'旅程標題與日期',fields:F.trip,values:S.trip,onSave:v=>mutate(()=>{Object.assign(S.trip,v);S.sample=false})});
+  const t=curTrip();
+  openForm({title:'旅程標題與日期',fields:[{key:'name',label:'分頁名稱',req:true},{key:'country',label:'國家',type:'select',options:Object.keys(CT)},...F.trip],values:{...S.trip,name:t.name,country:t.country},onSave:v=>mutate(()=>{const {name,country,...rest}=v;t.name=name;t.country=country;Object.assign(S.trip,rest);S.sample=false})});
 }
 function editListItem(listId,id){
   const L=LISTS[listId],x=find(S[L.key],id);if(!x)return;
@@ -949,12 +1059,12 @@ function editListItem(listId,id){
   openForm({title:'編輯項目',fields,values:x,onSave:v=>mutate(()=>Object.assign(x,v))});
 }
 function backup(){
-  const json=JSON.stringify(S);let armed=false;
+  const json=JSON.stringify(ROOT);let armed=false;
   const need=()=>{if(ui.unlocked)return false;$('#bkmsg').textContent='還原需要編輯權限，請先按右上角「編輯」，用 Google 帳號登入。';return true};
   openSheet(`<h3 id="sheet-t">備份與還原</h3><p class="mut">複製下面的文字存起來；要還原時貼回來，按「用這段內容還原」（還原會同步給所有人）。</p><textarea id="bk" rows="7" spellcheck="false" aria-label="備份內容">${esc(json)}</textarea><div class="sheet-btns" style="margin-top:.6rem"><button type="button" class="btn ok" data-sheet="copy">複製備份</button><button type="button" class="btn" data-sheet="imp">用這段內容還原</button></div><div class="sheet-btns"><button type="button" class="btn" data-sheet="reset">還原成範例行程</button><span class="sp"></span><button type="button" class="btn" data-sheet="close">關閉</button></div><p class="msg" id="bkmsg" role="status"></p>`,{
     copy:async()=>{const ok=await copyText($('#bk').value);if(!ok)$('#bk').select();$('#bkmsg').textContent=ok?'已複製。':'請手動複製選取的文字。'},
-    imp:()=>{if(need())return;try{const n=normalize(JSON.parse($('#bk').value));if(!n)throw 0;const snap=JSON.stringify(S);closeSheet();S=n;save();renderAll();toast('已還原',()=>{S=normalize(JSON.parse(snap));save();renderAll()})}catch(e){$('#bkmsg').textContent='內容格式不對，請貼上完整的備份文字。'}},
-    reset:b=>{if(need())return;if(!armed){armed=true;b.textContent='再按一次確認';return}const snap=JSON.stringify(S);closeSheet();S=sample();save();renderAll();toast('已還原成範例行程',()=>{S=normalize(JSON.parse(snap));save();renderAll()})}
+    imp:()=>{if(need())return;try{const n=normRoot(JSON.parse($('#bk').value));if(!n)throw 0;const snap=JSON.stringify(ROOT);closeSheet();setRoot(n);save();renderAll();toast('已還原',()=>{setRoot(normRoot(JSON.parse(snap)));save();renderAll()})}catch(e){$('#bkmsg').textContent='內容格式不對，請貼上完整的備份文字。'}},
+    reset:b=>{if(need())return;if(!armed){armed=true;b.textContent='再按一次確認';return}const snap=JSON.stringify(ROOT);closeSheet();setRoot(mkRoot());save();renderAll();toast('已還原成範例行程',()=>{setRoot(normRoot(JSON.parse(snap)));save();renderAll()})}
   });
 }
 
@@ -971,6 +1081,10 @@ document.addEventListener('click',e=>{
   const a=t.dataset.act,id=t.dataset.id;
   switch(a){
     case 'day':ui.day=id;renderDays(true);break;
+    case 'trip':switchTrip(id);break;
+    case 'add-trip':if(!ui.unlocked){askPw(addTrip);break}addTrip();break;
+    case 'del-trip':delTrip();break;
+    case 'cover':coverSheet();break;
     case 'add-day':addDay();break;
     case 'edit-day':editDay(id);break;
     case 'add-item':addItem(id);break;
