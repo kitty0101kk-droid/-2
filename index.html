@@ -204,6 +204,10 @@ body:not(.editing) .ph-strip:not(.has){display:none}
 img[data-ph]:not([src]){visibility:hidden}
 .ph-add{border:3px dashed var(--ink);border-radius:999px;background:var(--paper);padding:0 .8rem;font-size:.85rem;line-height:1.7}
 .ph-big{display:block;width:100%;max-height:60vh;object-fit:contain;border:3px solid var(--ink);border-radius:16px;background:var(--white);min-height:4rem}
+.sec[hidden]{display:none}
+.ph-file{max-width:100%;border:3px solid var(--ink);border-radius:999px;background:var(--blue);padding:0 .8rem;font-size:.85rem;line-height:1.7;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rows li.sel{background:var(--paper);border-radius:12px}
+.rows li.drop{background:var(--yellow);outline:3px dashed var(--ink);outline-offset:-3px;border-radius:12px}
 
 .hotel{overflow:hidden}
 .hotel-h{display:flex;align-items:center;gap:.7rem;background:var(--yellow);border-bottom:3px solid var(--ink);padding:.7rem 1rem}
@@ -330,7 +334,7 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 </main>
 
 <button id="fab" class="fab" type="button" aria-label="顯示選單（可拖曳移動）">☰</button>
-<input id="phInput" type="file" accept="image/*" multiple hidden>
+<input id="phInput" type="file" multiple hidden>
 <div id="toast" role="status" hidden></div>
 <div id="scrim" class="scrim" hidden><div id="sheet" class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-t"></div></div>
 
@@ -434,6 +438,8 @@ const ui={editing:false,day:null,lastCat:'其他',unlocked:!FB_ON,user:null};
 let auth=null,AU=null;
 /* 照片：縮圖後存成獨立文件（雲端：Firestore photos 集合；本機模式：localStorage） */
 const phCache=new Map(),phLoading=new Set();
+let phSel=null;
+const MAXF=650*1024; // 非圖片檔上限（Firestore 單一文件約 1MB）
 let PH={
   set:async(id,d)=>{localStorage.setItem('tabi-photo-'+id,d)},
   get:async id=>{try{return localStorage.getItem('tabi-photo-'+id)}catch(e){return null}}
@@ -726,13 +732,13 @@ function renderHotels(){
 }
 
 const LISTS={
-  todo:{key:'todos',h:'待辦清單',sub:'依分類整理，想吃、想買、想拍的隨時加進來',ph:'項目，例如：在淺草吃人形燒',cat:true},
+  todo:{key:'todos',h:'待辦清單',sub:'依分類整理，想吃、想買、想拍的隨時加進來。可把照片或檔案拖到項目上，或點選項目後按 Ctrl+V 貼上',ph:'項目，例如：在淺草吃人形燒',cat:true},
   prep:{key:'prep',h:'出發前清單',sub:'出發前要處理的事，一項一項打勾',ph:'新增一項，例如：確認護照效期'},
   pack:{key:'pack',h:'行李清單',sub:'依分類整理，打包時逐項勾掉',ph:'物品，例如：充電線',cat:true}
 };
 function renderList(id){
   const L=LISTS[id],items=S[L.key],done=items.filter(i=>i.done).length,pct=items.length?Math.round(done/items.length*100):0;
-  const row=i=>`<li class="${i.done?'done':''}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${i.done?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span></label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
+  const row=i=>`<li class="${i.done?'done':''}${phSel===i.id?' sel':''}" data-item="${i.id}" data-list="${id}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${i.done?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span></label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
   let body;
   if(!items.length)body='<p class="nothing">還沒有項目，編輯模式下可以從下方加入第一項。</p>';
   else if(L.cat){
@@ -748,7 +754,7 @@ function renderList(id){
 function phStrip(listId,i){
   if(listId!=='todo')return '';
   const ps=i.photos||[];
-  return `<div class="ph-strip${ps.length?' has':''}">${ps.map(p=>`<button type="button" class="ph-th" data-act="ph-view" data-list="${listId}" data-id="${i.id}" data-pid="${p.id}" aria-label="查看照片"><img data-ph="${p.id}" alt="${esc(p.name||'照片')}"></button>`).join('')}<button type="button" class="ph-add edit-only" data-act="ph-add" data-list="${listId}" data-id="${i.id}">📷 新增照片</button></div>`;
+  return `<div class="ph-strip${ps.length?' has':''}">${ps.map(p=>p.file?`<button type="button" class="ph-file" data-act="ph-view" data-list="${listId}" data-id="${i.id}" data-pid="${p.id}" aria-label="查看檔案">📄 ${esc(p.name||'檔案')}</button>`:`<button type="button" class="ph-th" data-act="ph-view" data-list="${listId}" data-id="${i.id}" data-pid="${p.id}" aria-label="查看照片"><img data-ph="${p.id}" alt="${esc(p.name||'照片')}"></button>`).join('')}<button type="button" class="ph-add edit-only" data-act="ph-add" data-list="${listId}" data-id="${i.id}">📎 新增照片／檔案</button></div>`;
 }
 function hydratePhotos(root){
   $$('img[data-ph]',root||document).forEach(img=>{
@@ -792,19 +798,29 @@ async function uploadPhotos(files,t){
   if(!files.length||!find(S[L.key],t.id))return;
   toast('照片處理中…');
   const added=[];let fail=0,denied=false;
+  let big=0;
   for(const f of files){
-    if(!/^image\//.test(f.type)&&!/\.(heic|heif|jpe?g|png|webp|gif)$/i.test(f.name)){fail++;continue}
+    const isImg=/^image\//.test(f.type)||/\.(jpe?g|png|webp|gif|bmp)$/i.test(f.name);
     try{
-      const d=await compressImg(f),pid=uid()+uid();
-      await PH.set(pid,d);phCache.set(pid,d);added.push({id:pid,name:f.name});
+      let d=null,file=false;
+      if(isImg){try{d=await compressImg(f)}catch(e){d=null}}
+      if(!d){
+        if(f.size>MAXF){big++;fail++;continue}
+        d=await readFile(f);file=true;
+      }
+      const pid=uid()+uid();
+      await PH.set(pid,d);
+      if(!file)phCache.set(pid,d);
+      added.push(file?{id:pid,name:f.name,file:true,size:f.size}:{id:pid,name:f.name});
     }catch(e){fail++;if(/perm|denied/i.test((e&&e.code)||''))denied=true}
   }
   if(added.length)mutate(()=>{const x=find(S[L.key],t.id);if(x)(x.photos=x.photos||[]).push(...added)});
-  toast(added.length?`已加入 ${added.length} 張照片${fail?`，${fail} 張失敗`:''}`:(denied?'沒有上傳權限，請確認 Firestore 規則已加入 photos':'照片上傳失敗，請再試一次'));
+  toast(added.length?`已加入 ${added.length} 個項目${fail?`，${fail} 個失敗`:''}`:(denied?'沒有上傳權限，請確認 Firestore 規則已加入 photos':(big?'檔案太大，非圖片檔上限約 650 KB':'上傳失敗，請再試一次')));
 }
 function viewPhoto(listId,itemId,pid){
   const L=LISTS[listId],x=find(S[L.key],itemId);if(!x)return;
   const p=(x.photos||[]).find(q=>q.id===pid);if(!p)return;
+  if(p.file){viewFile(listId,itemId,p);return}
   openSheet(`<h3 id="sheet-t">${esc(x.text)}</h3><img class="ph-big" data-ph="${pid}" alt="${esc(p.name||'照片')}"><div class="sheet-btns" style="margin-top:.8rem">${ui.editing&&ui.unlocked?'<button type="button" class="btn danger" data-sheet="rm">刪除照片</button>':''}<span class="sp"></span><button type="button" class="btn primary" data-sheet="close">關閉</button></div>`,{
     rm:()=>{closeSheet();mutate(()=>{const y=find(S[L.key],itemId);if(y)y.photos=(y.photos||[]).filter(q=>q.id!==pid)},'已刪除照片',true)}
   });
@@ -1003,6 +1019,57 @@ document.addEventListener('change',e=>{
   if(f.tagName==='SELECT'){x.tr=f.value;save();renderTransit();renderDays(false);return}
   x.trNote=f.value.trim();save();renderDays(false);
 });
+function readFile(f){
+  return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(new Error('read'));r.readAsDataURL(f)});
+}
+function viewFile(listId,itemId,p){
+  const L=LISTS[listId];
+  const sz=p.size?(p.size>=1048576?(p.size/1048576).toFixed(1)+' MB':Math.max(1,Math.round(p.size/1024))+' KB'):'';
+  openSheet(`<h3 id="sheet-t">${esc(p.name||'檔案')}</h3>${sz?`<p class="mut">${esc(sz)}</p>`:''}<p class="msg" id="flmsg" role="status"></p><div class="sheet-btns">${ui.editing&&ui.unlocked?'<button type="button" class="btn danger" data-sheet="rm">刪除檔案</button>':''}<span class="sp"></span><button type="button" class="btn" data-sheet="close">關閉</button><button type="button" class="btn primary" data-sheet="dl">下載</button></div>`,{
+    dl:async()=>{
+      const m=$('#flmsg');if(m)m.textContent='下載中…';
+      try{
+        const d=await PH.get(p.id);if(!d)throw 0;
+        const a=document.createElement('a');a.href=d;a.download=p.name||'file';document.body.appendChild(a);a.click();a.remove();
+        if(m)m.textContent='';
+      }catch(e){if(m)m.textContent='下載失敗，請稍後再試。'}
+    },
+    rm:()=>{closeSheet();mutate(()=>{const y=find(S[L.key],itemId);if(y)y.photos=(y.photos||[]).filter(q=>q.id!==p.id)},'已刪除檔案',true)}
+  });
+}
+/* 拖曳／貼上上傳 */
+const hasFiles=e=>!!(e.dataTransfer&&[...(e.dataTransfer.types||[])].includes('Files'));
+const dropLi=e=>(e.target&&e.target.closest)?e.target.closest('#todo li[data-item]'):null;
+const clearDrop=()=>$$('li.drop').forEach(x=>x.classList.remove('drop'));
+document.addEventListener('dragover',e=>{
+  if(!hasFiles(e))return;
+  e.preventDefault();
+  const li=dropLi(e);clearDrop();
+  if(li){li.classList.add('drop');e.dataTransfer.dropEffect='copy'}else e.dataTransfer.dropEffect='none';
+});
+document.addEventListener('dragleave',e=>{if(!e.relatedTarget)clearDrop()});
+document.addEventListener('drop',e=>{
+  if(!hasFiles(e))return;
+  e.preventDefault();clearDrop();
+  const li=dropLi(e),files=[...e.dataTransfer.files];
+  if(!li||!files.length)return;
+  if(!ui.unlocked){askPw();return}
+  uploadPhotos(files,{list:'todo',id:li.dataset.item});
+});
+document.addEventListener('paste',e=>{
+  const files=[...((e.clipboardData&&e.clipboardData.files)||[])];
+  if(!files.length||!$('#scrim').hidden)return;
+  e.preventDefault();
+  if(!ui.unlocked){askPw();return}
+  if(!phSel||!find(S.todos,phSel)){toast('先點一下要加檔案的待辦項目，再貼上');return}
+  uploadPhotos(files,{list:'todo',id:phSel});
+});
+document.addEventListener('click',e=>{
+  const li=e.target.closest&&e.target.closest('#todo li[data-item]');
+  if(!li||phSel===li.dataset.item)return;
+  phSel=li.dataset.item;
+  $$('#todo li.sel').forEach(x=>x.classList.remove('sel'));li.classList.add('sel');
+});
 $('#phInput').addEventListener('change',e=>{
   const files=[...e.target.files],t=phTarget;e.target.value='';phTarget=null;
   if(t&&files.length)uploadPhotos(files,t);
@@ -1024,14 +1091,14 @@ navPref.hidden=(Array.isArray(navPref.hidden)?navPref.hidden:[]).filter(k=>NAVS[
 function renderNav(){
   $('#nav').innerHTML='<a href="#top" data-nav="top">首頁</a>'+navPref.order.filter(k=>!navPref.hidden.includes(k)).map(k=>`<a href="#${k}" data-nav="${k}">${NAVS[k]}</a>`).join('');
 }
-function applyOrder(){const main=$('main'),foot=$('#foot');navPref.order.forEach(k=>{const el=document.getElementById(k);if(el)main.insertBefore(el,foot)})}
+function applyOrder(){const main=$('main'),foot=$('#foot');navPref.order.forEach(k=>{const el=document.getElementById(k);if(el){main.insertBefore(el,foot);el.hidden=navPref.hidden.includes(k)}})}
 function refreshNav(){renderNav();applyOrder();applyNav();spyId='';spy()}
 function openNavMenu(){
   const n=navPref.order.length;
   const rows=navPref.order.map((k,i)=>{const h=navPref.hidden.includes(k);return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><button type="button" class="btn sm ${h?'':'ok'}" data-sheet="tg" data-k="${k}">${h?'已隱藏':'顯示中'}</button><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
   const redo=()=>{refreshNav();openNavMenu()};
   const move=(b,d)=>{const k=b.dataset.k,i=navPref.order.indexOf(k),j=i+d;if(j<0||j>=n)return;navPref.order.splice(i,1);navPref.order.splice(j,0,k);redo()};
-  openSheet(`<h3 id="sheet-t">選單設定</h3><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem"><button type="button" class="btn sm" data-sheet="pos">選單移到${navPref.pos==='bottom'?'上方':'下方'}</button><button type="button" class="btn sm" data-sheet="hide">隱藏整個選單</button></div><p class="mut">用 ↑↓ 調整順序（頁面內容也會跟著換位置），按「顯示中」可以隱藏個別項目。設定只存在這台裝置。</p><ul class="rows orglist">${rows}</ul><div class="sheet-btns" style="margin-top:.8rem"><button type="button" class="btn" data-sheet="reset">還原預設</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
+  openSheet(`<h3 id="sheet-t">選單設定</h3><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem"><button type="button" class="btn sm" data-sheet="pos">選單移到${navPref.pos==='bottom'?'上方':'下方'}</button><button type="button" class="btn sm" data-sheet="hide">隱藏整個選單</button></div><p class="mut">用 ↑↓ 調整順序（頁面內容也會跟著換位置），按「顯示中」會隱藏該項目，頁面內容也會一起隱藏（再按一次就會顯示）。設定只存在這台裝置。</p><ul class="rows orglist">${rows}</ul><div class="sheet-btns" style="margin-top:.8rem"><button type="button" class="btn" data-sheet="reset">還原預設</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
     pos:()=>{navPref.pos=navPref.pos==='bottom'?'top':'bottom';redo()},
     hide:()=>{navPref.hide=true;closeSheet();refreshNav();toast('選單已隱藏，點圓形按鈕可以叫回來，按住可以拖曳移動')},
     tg:b=>{const k=b.dataset.k,i=navPref.hidden.indexOf(k);if(i>=0)navPref.hidden.splice(i,1);else navPref.hidden.push(k);redo()},
@@ -1069,7 +1136,7 @@ fab.addEventListener('pointerup',()=>{
 fab.addEventListener('pointercancel',()=>{drag=null});
 fab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();navPref.hide=false;applyNav()}});
 applyNav();
-const secIds=()=>['top',...navPref.order];let spyId='',raf=0;
+const secIds=()=>['top',...navPref.order.filter(k=>!navPref.hidden.includes(k))];let spyId='',raf=0;
 function spy(){
   let cur='top';for(const id of secIds()){if(document.getElementById(id).getBoundingClientRect().top<=130)cur=id}
   if(cur===spyId)return;spyId=cur;
