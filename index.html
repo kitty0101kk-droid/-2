@@ -453,6 +453,35 @@ main{gap:1.8rem}
 .ov-list li,.ov-list li:nth-child(n){background:var(--mint)}
 .cd-t,.cd-t:nth-child(n){background:var(--yellow)}
 .sgrp{font-weight:400;font-size:.85rem;color:var(--ink-soft);margin:.6rem .2rem .1rem}
+
+/* 版面簡化：去掉區塊外框與底色、統一配色、減少動態 */
+main{gap:1.8rem}
+.sec{background:var(--tint);border:2px solid var(--ink);border-radius:32px;box-shadow:0 3px 0 var(--ink);padding:1.1rem 1rem 1.2rem}
+.sec-h{border-bottom:2px dashed var(--ink);padding-bottom:.7rem;font-size:1.3rem}
+.sec-h .ico{background:var(--white);width:42px;height:42px}
+.sec-h .ico svg{width:30px;height:30px}
+.sec-h .sec-t{flex:1;min-width:0}
+.sec-eye{flex:none;margin-left:auto}
+.sec.folded>:not(.sec-h){display:none!important}
+.sec.folded{padding-bottom:1.1rem}.sec.folded .sec-h{border-bottom:0;padding-bottom:0;opacity:.7}
+.card{border-width:1.5px}
+.day-head,.hotel-h{background:var(--sand)}
+.hotel-h{border-bottom-width:1.5px}
+.tl-c{border-width:1.5px}
+.tl-c.must{background:var(--sand)}
+.group h3,.group:nth-of-type(n) h3{background:var(--sand)}
+.clk-c,.clk-c.tw{background:var(--sand)}
+.cd-t,.cd-t:nth-child(n){background:var(--sand)}
+.btn.primary{background:var(--yellow)}
+.mustb{animation:none}
+.pop-in{animation:none}
+.ov{border-style:solid;border-width:1.5px;background:var(--white)}
+.ov-list li,.ov-list li:nth-child(n){background:var(--sand)}
+.leg-route{background:var(--paper)}
+.dt{border-width:1.5px}
+.dt[aria-selected="true"]{background:var(--yellow)}
+.tag{background:var(--white)}
+.hint{background:var(--sand)}
 </style>
 
 
@@ -859,7 +888,7 @@ $('#covInput').addEventListener('change',async e=>{
   catch(err){toast(isGif(f)?'GIF 檔案太大，請選 650 KB 以內的 GIF':'封面上傳失敗，請換一張較小的圖片再試')}
 });
 const editBtns=(act,id,extra='')=>`<span class="eb edit-only"><button type="button" class="mini" data-act="edit-${act}" data-id="${id}" ${extra} aria-label="編輯">✎</button></span>`;
-const secHead=(id,title,sub)=>`<h2 class="sec-h"><span class="ico ${({flights:'bg-b',days:'bg-p',transit:'bg-m',todo:'bg-y',hotels:'bg-l',explore:'bg-c',prep:'bg-g',pack:'bg-o',notes:'bg-y'})[id]}">${SVG.ico[id]}</span>${esc(title)}</h2>${sub?`<p class="sec-sub">${esc(sub)}</p>`:''}`;
+const secHead=(id,title,sub)=>`<h2 class="sec-h"><span class="ico ${({flights:'bg-b',days:'bg-p',transit:'bg-m',todo:'bg-y',hotels:'bg-l',explore:'bg-c',prep:'bg-g',pack:'bg-o',notes:'bg-y'})[id]}">${SVG.ico[id]}</span><span class="sec-t">${esc(title)}</span><button type="button" class="mini eyeb sec-eye${navPref.hidden.includes(id)?'':' on'}" data-act="sec-toggle" data-k="${id}" aria-label="${navPref.hidden.includes(id)?'已隱藏，點一下顯示':'顯示中，點一下隱藏'}${esc(title)}" title="${navPref.hidden.includes(id)?'顯示':'隱藏'}">${navPref.hidden.includes(id)?SVG.eyeClosed:SVG.eyeOpen}</button></h2>${sub?`<p class="sec-sub">${esc(sub)}</p>`:''}`;
 
 function renderHero(){
   const t=S.trip,dep=t.depart?t.depart.slice(0,10):'';
@@ -975,7 +1004,7 @@ function renderTransit(){
     return `<li class="leg"><p class="leg-route">${esc(a.title)} <b>➔</b> ${esc(b.title)}</p>
     <div class="leg-top"><label class="leg-mode"><span>交通方式</span><select class="leg-tr" data-day="${d.id}" data-id="${b.id}" aria-label="${esc(a.title)}到${esc(b.title)}的交通方式"><option value="">未設定</option>${TRS.map(o=>`<option${o===b.tr?' selected':''}>${esc(o)}</option>`).join('')}</select></label></div>
     <label class="leg-lbl"><span>怎麼搭乘／注意事項</span><textarea class="leg-ta" rows="2" data-day="${d.id}" data-id="${b.id}" placeholder="例如：JR 山手線往新宿，搭 3 站；月台 2 號" aria-label="${esc(a.title)}到${esc(b.title)}的搭乘備註">${esc(b.trNote||'')}</textarea></label>
-    <div class="leg-acts"><a class="btn sm maplink" href="${esc(dirUrl(placeText(a),placeText(b),b.tr))}" target="_blank" rel="noopener">看路線</a><button type="button" class="btn sm" data-act="goto-item" data-day="${d.id}" data-id="${b.id}">看行程</button></div></li>`;
+    <div class="leg-acts"><a class="btn sm maplink" href="${esc(dirUrl(placeText(a),placeText(b),b.tr))}" target="_blank" rel="noopener">看路線</a></div></li>`;
   }).join('');
   box.innerHTML=head+`<div class="daytabs" role="tablist" aria-label="選擇天數">${tabs}</div>
   <div class="card group"><h3>Day ${idx+1} · ${md(d.date)}（${wk(d.date)}）${esc(d.title||'')}</h3>${chain}${legs?`<ul class="legs">${legs}</ul>`:`<p class="nothing" style="padding:.6rem 0 .4rem">${its.length?'這天只有一個地點，不需要交通區段。':'這天還沒有行程地點。'}</p>`}</div>`;
@@ -1611,6 +1640,7 @@ document.addEventListener('click',e=>{
   const a=t.dataset.act,id=t.dataset.id;
   switch(a){
     case 'day':ui.day=id;renderDays(true);break;
+    case 'sec-toggle':{const k=t.dataset.k,i=navPref.hidden.indexOf(k);if(i>=0)navPref.hidden.splice(i,1);else navPref.hidden.push(k);renderAll();applyNav();spyId='';spy();setTimeout(()=>{try{exMapObj&&exMapObj.invalidateSize()}catch(e){}},80);break}
     case 'side-open':if(DESK.matches)setSideCol(false);else document.body.classList.add('sideopen');break;
     case 'side-close':if(DESK.matches)setSideCol(true);else document.body.classList.remove('sideopen');break;
     case 'rename-trip':ui.renaming=id;renderTrips();break;
@@ -1643,7 +1673,6 @@ document.addEventListener('click',e=>{
     case 'ex-focus':document.getElementById('exG').scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});exGooglePlace(t.dataset.key);break;
     case 'ttab':ui.todoDay=id;renderList('todo');break;
     case 'edit-leg':{const d=find(S.days,t.dataset.day),x=d&&find(d.items,id);if(!x)break;openForm({title:'編輯交通方式',fields:[{key:'tr',label:'交通方式',type:'select',options:TRS},{key:'trNote',label:'搭乘方式備註',type:'textarea',ph:'例如：JR 山手線往新宿，搭 3 站；月台 2 號'}],values:x,onSave:v=>mutate(()=>Object.assign(x,v))});break}
-    case 'goto-item':{ui.day=t.dataset.day;renderDays(true);document.getElementById('days').scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'});setTimeout(()=>{const el=document.getElementById('it-'+id),c=el&&el.querySelector('.tl-c');if(c){el.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});c.style.animation='flash 1.6s';setTimeout(()=>{c.style.animation=''},1800)}},reduced()?0:450);break}
     case 'copy':copyText(t.dataset.text).then(ok=>toast(ok?'已複製':'複製失敗，請長按文字手動複製'));break;
   }
 });
@@ -1755,17 +1784,16 @@ navPref.hidden=(Array.isArray(navPref.hidden)?navPref.hidden:[]).filter(k=>NAVS[
 function renderNav(){
   $('#nav').innerHTML='<a href="#top" data-nav="top">首頁</a>'+navPref.order.filter(k=>!navOff(k)).map(k=>`<a href="#${k}" data-nav="${k}">${NAVS[k]}</a>`).join('');
 }
-function applyOrder(){const main=$('main'),foot=$('#foot');navPref.order.forEach(k=>{const el=document.getElementById(k);if(el){main.insertBefore(el,foot);el.hidden=navOff(k)}})}
+function applyOrder(){const main=$('main'),foot=$('#foot');navPref.order.forEach(k=>{const el=document.getElementById(k);if(el){main.insertBefore(el,foot);el.hidden=(k==='flights'&&isDom());el.classList.toggle('folded',navPref.hidden.includes(k))}})}
 function refreshNav(){renderNav();applyOrder();fixGrid();applyNav();spyId='';spy()}
 function openNavMenu(){
   const n=navPref.order.length;
-  const rows=navPref.order.map((k,i)=>{if(k==='flights'&&isDom())return '';const h=navPref.hidden.includes(k);return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><button type="button" class="mini eyeb${h?'':' on'}" data-sheet="tg" data-k="${k}" aria-label="${h?'已隱藏，點一下顯示':'顯示中，點一下隱藏'}" title="${h?'已隱藏':'顯示中'}">${h?SVG.eyeClosed:SVG.eyeOpen}</button><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
+  const rows=navPref.order.map((k,i)=>{if(k==='flights'&&isDom())return '';return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
   const redo=()=>{refreshNav();openNavMenu()};
   const move=(b,d)=>{const k=b.dataset.k,i=navPref.order.indexOf(k),j=i+d;if(j<0||j>=n)return;navPref.order.splice(i,1);navPref.order.splice(j,0,k);redo()};
-  openSheet(`<h3 id="sheet-t">選單設定</h3><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem"><button type="button" class="btn sm" data-sheet="pos">選單移到${navPref.pos==='bottom'?'上方':'下方'}</button><button type="button" class="btn sm" data-sheet="hide" aria-label="隱藏整個選單"><span class="eyeb">${SVG.eyeClosed}<span>整個選單</span></span></button></div><p class="mut">用 ↑↓ 調整順序（頁面內容也會跟著換位置），按眼睛圖示可以顯示（睜眼）或隱藏（閉眼）該項目，頁面內容也會一起顯示或隱藏。設定只存在這台裝置。</p><ul class="rows orglist">${rows}</ul><div class="sheet-btns" style="margin-top:.8rem"><button type="button" class="btn" data-sheet="reset">還原預設</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
+  openSheet(`<h3 id="sheet-t">選單設定</h3><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem"><button type="button" class="btn sm" data-sheet="pos">選單移到${navPref.pos==='bottom'?'上方':'下方'}</button><button type="button" class="btn sm" data-sheet="hide" aria-label="隱藏整個選單"><span class="eyeb">${SVG.eyeClosed}<span>整個選單</span></span></button></div><p class="mut">用 ↑↓ 調整順序（頁面內容也會跟著換位置）。想隱藏某個區塊，請按該區塊大標題旁的眼睛圖示。設定只存在這台裝置。</p><ul class="rows orglist">${rows}</ul><div class="sheet-btns" style="margin-top:.8rem"><button type="button" class="btn" data-sheet="reset">還原預設</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
     pos:()=>{navPref.pos=navPref.pos==='bottom'?'top':'bottom';redo()},
     hide:()=>{navPref.hide=true;closeSheet();refreshNav();toast('選單已隱藏，點圓形按鈕可以叫回來，按住可以拖曳移動')},
-    tg:b=>{const k=b.dataset.k,i=navPref.hidden.indexOf(k);if(i>=0)navPref.hidden.splice(i,1);else navPref.hidden.push(k);redo()},
     up:b=>move(b,-1),dn:b=>move(b,1),
     reset:()=>{navPref.order=NAV_DEF.slice();navPref.hidden=[];redo()}
   });
