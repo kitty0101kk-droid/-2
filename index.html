@@ -13,7 +13,7 @@
   --ink:#3E3A39; --ink-soft:#6F6A67;
   --coral:#FFB7AE; --yellow:#FFE59A; --blue:#B8DFF5; --green:#BFE8C0;
   --lav:#DCCDF7; --pink:#FFC8DE; --mint:#BEEBDD; --peach:#FFD2AE;
-  --r:32px; --bounce:cubic-bezier(.34,1.56,.64,1);
+  --red:#F4786B; --r:32px; --bounce:cubic-bezier(.34,1.56,.64,1);
   --font:'Huninn','Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif;
   color-scheme:light;
 }
@@ -182,11 +182,6 @@ main{padding-top:1.2rem;padding-bottom:calc(3rem + env(safe-area-inset-bottom,0p
 .pop-in{animation:pop .55s var(--bounce) both;animation-delay:calc(var(--i,0)*70ms)}
 #daypanel.swap .day-head{animation:pop .5s var(--bounce) both}
 
-.prog{display:flex;align-items:center;gap:.7rem;font-size:.9rem}
-.prog .track{flex:1;height:18px;border:2px solid var(--ink);border-radius:999px;background:var(--white);overflow:hidden}
-.prog .bar{height:100%;background:var(--green);border-right:2px solid var(--ink);transition:width .5s var(--bounce)}
-.prog .bar[style*="width:0%"]{border-right:0}
-.prog span{flex:none;font-variant-numeric:tabular-nums}
 .group{padding:.8rem 1rem .5rem}
 .group+.group{margin-top:-.4rem}
 .group h3{font-weight:400;font-size:1rem;display:inline-block;border:2px solid var(--ink);border-radius:999px;padding:0 .8rem;background:var(--blue);line-height:1.6;margin-bottom:.3rem}
@@ -196,7 +191,7 @@ main{padding-top:1.2rem;padding-bottom:calc(3rem + env(safe-area-inset-bottom,0p
 .chk input{position:absolute;opacity:0;width:28px;height:28px;margin:0}
 .box{flex:none;width:28px;height:28px;border:2px solid var(--ink);border-radius:10px;background:var(--white);display:grid;place-items:center}
 .box svg{width:18px;height:18px;opacity:0;--sw:3.5}
-.chk input:checked~.box{background:var(--green)}
+.chk input:checked~.box{background:var(--red)}
 .chk input:checked~.box svg{opacity:1}
 .chk input:focus-visible~.box{outline:2px dashed var(--ink);outline-offset:3px}
 .chk .txt{min-width:0;overflow-wrap:anywhere}
@@ -277,7 +272,7 @@ footer p{font-size:.88rem;color:var(--ink-soft);max-width:30em}
 .fld textarea,.sheet textarea{resize:vertical;min-height:5.5rem}
 .crow{grid-column:1/-1;display:flex;align-items:center;gap:.7rem;cursor:pointer;position:relative}
 .crow input{position:absolute;opacity:0;width:28px;height:28px;margin:0}
-.crow input:checked~.box{background:var(--coral)}
+.crow input:checked~.box{background:var(--red)}
 .crow input:checked~.box svg{opacity:1}
 .crow input:focus-visible~.box{outline:2px dashed var(--ink);outline-offset:3px}
 .sheet-btns{grid-column:1/-1;display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-top:.3rem}
@@ -433,6 +428,25 @@ body.sideopen .side-scrim{display:block}
 @media (min-width:1024px){#exG{height:min(74vh,680px);max-height:none}}
 .exgf{display:block;width:100%;height:100%;border:0}
 .exg-note{height:100%;display:grid;place-items:center;text-align:center;padding:1rem;color:var(--ink-soft)}
+
+/* 優化：區塊分區、同類內容統一配色與模板 */
+main{gap:1.8rem}
+.sec{--tint:var(--sand);background:var(--tint);border:2px solid var(--ink);border-radius:36px;padding:1.1rem 1rem 1.2rem;box-shadow:0 5px 0 var(--ink)}
+#flights{--tint:color-mix(in srgb,var(--blue) 35%,#fff)}
+#days{--tint:color-mix(in srgb,var(--lav) 35%,#fff)}
+#transit{--tint:color-mix(in srgb,var(--mint) 40%,#fff)}
+#explore{--tint:color-mix(in srgb,var(--peach) 40%,#fff)}
+#todo{--tint:color-mix(in srgb,var(--yellow) 40%,#fff)}
+#hotels{--tint:color-mix(in srgb,var(--pink) 35%,#fff)}
+#prep{--tint:color-mix(in srgb,var(--green) 35%,#fff)}
+#notes{--tint:color-mix(in srgb,var(--lav) 28%,var(--yellow) 12%,#fff)}
+#pack{--tint:color-mix(in srgb,var(--coral) 28%,#fff)}
+.sec-h{padding-bottom:.7rem;border-bottom:2px dashed var(--ink)}
+.sec-sub{margin-top:-.4rem}
+/* 同類內容同一種配色：分類標題、當天總覽、倒數方塊 */
+.group h3,.group:nth-of-type(n) h3{background:var(--blue)}
+.ov-list li,.ov-list li:nth-child(n){background:var(--mint)}
+.cd-t,.cd-t:nth-child(n){background:var(--yellow)}
 </style>
 
 
@@ -464,6 +478,7 @@ body.sideopen .side-scrim{display:block}
   <section id="hotels" class="sec"></section>
   <section id="prep" class="sec"></section>
   <section id="pack" class="sec"></section>
+  <section id="notes" class="sec"></section>
   <footer id="foot"></footer>
 </main>
 
@@ -550,7 +565,10 @@ function sample(){
       pk('電子用品','手機與充電線'),pk('電子用品','行動電源（隨身帶，不可託運）'),pk('電子用品','轉接頭（日本插座與台灣相同，通常不需要）'),
       pk('衣物','防寒外套'),pk('衣物','發熱衣'),pk('衣物','好走的鞋'),pk('衣物','圍巾與手套'),
       pk('盥洗與藥品','牙刷牙膏'),pk('盥洗與藥品','保養品'),pk('盥洗與藥品','常備藥'),
-      pk('其他','折疊傘'),pk('其他','環保購物袋')]
+      pk('其他','折疊傘'),pk('其他','環保購物袋')],
+    notes:[
+      pk('行李箱帶的東西','換洗衣物與發熱衣'),pk('行李箱帶的東西','盥洗用品與保養品'),pk('行李箱帶的東西','常備藥品'),pk('行李箱帶的東西','充電線與轉接頭'),pk('行李箱帶的東西','折疊傘'),
+      pk('出門前要帶的東西','護照'),pk('出門前要帶的東西','手機'),pk('出門前要帶的東西','錢包與日幣現金'),pk('出門前要帶的東西','行動電源（不可託運）'),pk('出門前要帶的東西','電子機票／登機證')]
   };
   R.todos.forEach((t,i)=>{t.day=R.days[[0,1,3,1,2][i]].id});
   return R;
@@ -561,7 +579,7 @@ function normalize(o){
   const fix=a=>a.map(x=>({...x,id:x.id||uid()}));
   return {sample:!!o.sample,cover:{mode:'scene',style:'classic',seed:1,...(o.cover||{})},trip:{title:'',tagline:'',depart:'',back:'',tz:'',...o.trip},flights:fix(arr('flights')),
     days:arr('days').map(d=>({...d,id:d.id||uid(),items:fix(Array.isArray(d.items)?d.items:[])})),
-    hotels:fix(arr('hotels')),todos:fix(arr('todos')),todoCats:Array.isArray(o.todoCats)?o.todoCats.slice():[...new Set(arr('todos').map(i=>i.cat||'未分類'))],prep:fix(arr('prep')),pack:fix(arr('pack'))};
+    hotels:fix(arr('hotels')),todos:fix(arr('todos')),todoCats:Array.isArray(o.todoCats)?o.todoCats.slice():[...new Set(arr('todos').map(i=>i.cat||'未分類'))],prep:fix(arr('prep')),pack:fix(arr('pack')),notes:fix(arr('notes'))};
 }
 function normRoot(o){
   if(o&&Array.isArray(o.trips)){const ts=o.trips.map(t=>({id:t.id||uid(),name:t.name||'旅程',country:t.country||'其他',data:normalize(t.data)})).filter(t=>t.data);return ts.length?{trips:ts}:null}
@@ -762,6 +780,7 @@ const SVG={
     todo:`<svg class="ill" viewBox="0 0 40 40" aria-hidden="true"><rect x="7" y="6" width="26" height="30" rx="6" class="fw"/><path d="M13 15h14M13 22h8"/><path d="M22 28l3 3 6-7" class="fn"/></svg>`,
     hotels:`<svg class="ill" viewBox="0 0 40 40" aria-hidden="true"><rect x="8" y="17" width="24" height="18" rx="3" class="fw"/><path class="fc" d="M4 19L20 5l16 14z"/><rect x="17" y="25" width="7" height="10" rx="2" class="fy"/></svg>`,
     prep:`<svg class="ill" viewBox="0 0 40 40" aria-hidden="true"><rect x="8" y="8" width="24" height="28" rx="5" class="fg"/><rect x="14" y="4" width="12" height="8" rx="3" class="fw"/><path d="M13 23l5 5 9-10"/></svg>`,
+    notes:`<svg class="ill" viewBox="0 0 40 40" aria-hidden="true"><path class="fy" d="M20 5L37 34H3z"/><path d="M20 15v9"/><circle cx="20" cy="29" r="1.6" class="fc"/></svg>`,
     pack:`<svg class="ill" viewBox="0 0 40 40" aria-hidden="true"><rect x="5" y="12" width="30" height="23" rx="6" class="fc"/><path d="M14 12V8Q14 6 16 6h8Q26 6 26 8v4"/><path d="M5 22h30"/><rect x="17" y="19" width="6" height="7" rx="2" class="fy"/></svg>`
   },
   day:{
@@ -834,7 +853,7 @@ $('#covInput').addEventListener('change',async e=>{
   catch(err){toast(isGif(f)?'GIF 檔案太大，請選 650 KB 以內的 GIF':'封面上傳失敗，請換一張較小的圖片再試')}
 });
 const editBtns=(act,id,extra='')=>`<span class="eb edit-only"><button type="button" class="mini" data-act="edit-${act}" data-id="${id}" ${extra} aria-label="編輯">✎</button></span>`;
-const secHead=(id,title,sub)=>`<h2 class="sec-h"><span class="ico ${({flights:'bg-b',days:'bg-p',transit:'bg-m',todo:'bg-y',hotels:'bg-l',explore:'bg-c',prep:'bg-g',pack:'bg-o'})[id]}">${SVG.ico[id]}</span>${esc(title)}</h2>${sub?`<p class="sec-sub">${esc(sub)}</p>`:''}`;
+const secHead=(id,title,sub)=>`<h2 class="sec-h"><span class="ico ${({flights:'bg-b',days:'bg-p',transit:'bg-m',todo:'bg-y',hotels:'bg-l',explore:'bg-c',prep:'bg-g',pack:'bg-o',notes:'bg-y'})[id]}">${SVG.ico[id]}</span>${esc(title)}</h2>${sub?`<p class="sec-sub">${esc(sub)}</p>`:''}`;
 
 function renderHero(){
   const t=S.trip,dep=t.depart?t.depart.slice(0,10):'';
@@ -973,9 +992,10 @@ function renderHotels(){
 const LISTS={
   todo:{key:'todos',h:'待辦清單',sub:'依分類整理，想吃、想買、想拍的隨時加進來。可把照片或檔案拖到項目上，或點選項目後按 Ctrl+V 貼上',ph:'項目，例如：在淺草吃人形燒',cat:true},
   prep:{key:'prep',h:'出發前清單',sub:'出發前要處理的事，一項一項打勾',ph:'新增一項，例如：確認護照效期'},
-  pack:{key:'pack',h:'行李清單',sub:'依分類整理，打包時逐項勾掉',ph:'物品，例如：充電線',cat:true}
+  pack:{key:'pack',h:'行李清單',sub:'依分類整理，打包時逐項勾掉',ph:'物品，例如：充電線',cat:true},
+  notes:{key:'notes',h:'注意事項',sub:'出發前再核對一次：哪些放行李箱、哪些要隨身帶',ph:'物品，例如：護照',cat:true,fixed:['行李箱帶的東西','出門前要帶的東西']}
 };
-const LIST_PERUSER={prep:1,pack:1};
+const LIST_PERUSER={prep:1,pack:1,notes:1};
 const CNN=['','一','二','三','四','五','六','七','八','九','十','十一','十二','十三','十四','十五','十六','十七','十八','十九','二十'];
 const dayName=i=>'第'+(CNN[i+1]||(i+1))+'天';
 const dayOf=id=>{const ds=sortedDays(),i=ds.findIndex(d=>d.id===id);return i<0?null:{d:ds[i],i}};
@@ -997,18 +1017,20 @@ function renderList(id){
   const dayUi=isTodo?`<select name="day" class="daysel" aria-label="這是哪一天的待辦"><option value="">不分天</option>${dys.map((d,k)=>`<option value="${d.id}"${ui.todoDay===d.id?' selected':''}>${dayName(k)}</option>`).join('')}</select>`:'';
   const row=i=>`<li class="${isOn(id,i)?'done':''}${phSel===i.id?' sel':''}" data-item="${i.id}" data-list="${id}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${isOn(id,i)?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span>${isTodo&&ui.todoDay==='all'&&dayOf(i.day)?`<span class="mk">${dayName(dayOf(i.day).i)}</span>`:''}${tagHtml(id,i)}</label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
   let body;
-  if(!items.length)body=`<p class="nothing">${isTodo&&ui.todoDay!=='all'?'這天還沒有待辦項目。':'還沒有項目，編輯模式下可以從下方加入第一項。'}</p>`;
+  if(L.fixed){
+    const extra=[...new Set(items.map(i=>i.cat||'其他').filter(c=>!L.fixed.includes(c)))];
+    body=[...L.fixed,...extra].map(c=>{const g=items.filter(i=>(i.cat||'其他')===c);return `<div class="group"><h3>${esc(c)}</h3>${g.length?`<ul class="rows">${g.map(row).join('')}</ul>`:'<p class="nothing">還沒有項目，編輯模式下可以從下方加入。</p>'}</div>`}).join('');
+  }else if(!items.length)body=`<p class="nothing">${isTodo&&ui.todoDay!=='all'?'這天還沒有待辦項目。':'還沒有項目，編輯模式下可以從下方加入第一項。'}</p>`;
   else if(L.cat){
     const cats=[];items.forEach(i=>{const c=i.cat||'其他';if(!cats.includes(c))cats.push(c)});
     body=cats.map(c=>`<div class="group"><h3>${esc(c)}</h3><ul class="rows">${items.filter(i=>(i.cat||'其他')===c).map(row).join('')}</ul></div>`).join('');
   }else body=`<div class="group"><ul class="rows">${items.map(row).join('')}</ul></div>`;
-  const cats=[...new Set(items.map(i=>i.cat).filter(Boolean).concat(id==='todo'?(S.todoCats||[]):[]))];
+  const cats=L.fixed?L.fixed.slice():[...new Set(items.map(i=>i.cat).filter(Boolean).concat(id==='todo'?(S.todoCats||[]):[]))];
   const sel=cats.includes(ui.lastCat)?ui.lastCat:(cats[0]||'__new');
-  const catUi=`<select name="catsel" class="catsel" aria-label="分類">${cats.map(c=>`<option value="${esc(c)}"${c===sel?' selected':''}>${esc(c)}</option>`).join('')}<option value="__new"${sel==='__new'?' selected':''}>＋ 新增分類…</option></select><input name="cat" placeholder="輸入新分類" aria-label="新分類"${sel==='__new'?'':' hidden'}>`;
+  const catUi=`<select name="catsel" class="catsel" aria-label="分類">${cats.map(c=>`<option value="${esc(c)}"${c===sel?' selected':''}>${esc(c)}</option>`).join('')}${L.fixed?'':`<option value="__new"${sel==='__new'?' selected':''}>＋ 新增分類…</option>`}</select>${L.fixed?'':`<input name="cat" placeholder="輸入新分類" aria-label="新分類"${sel==='__new'?'':' hidden'}>`}`;
   $('#'+id).innerHTML=secHead(id,L.h,L.sub)+
   (ttabs||'')+
-  `<div class="prog"><div class="track" aria-hidden="true"><div class="bar" style="width:${pct}%"></div></div><span>${done} / ${items.length}${items.length&&done===items.length?' 全部完成！':''}</span></div>
-  <div class="card listcard">${body}<form class="addrow edit-only" data-add="${id}" autocomplete="off">${L.cat?catUi:''}${dayUi}<input name="text" placeholder="${esc(L.ph)}" aria-label="新增項目"><button class="btn primary" type="submit">加入</button></form></div>`;
+  `<div class="card listcard">${body}<form class="addrow edit-only" data-add="${id}" autocomplete="off">${L.cat?catUi:''}${dayUi}<input name="text" placeholder="${esc(L.ph)}" aria-label="新增項目"><button class="btn primary" type="submit">加入</button></form></div>`;
   if(id==='todo')hydratePhotos($('#todo'));
 }
 function phStrip(listId,i){
@@ -1096,6 +1118,7 @@ function renderFoot(){
   setSync(syncState);
 }
 const BP=['確認護照效期（建議 6 個月以上）','買網卡或 eSIM','準備外幣現金','辦理旅平險','下載離線地圖與翻譯','預訂住宿與交通'];
+const BN=[['行李箱帶的東西','換洗衣物'],['行李箱帶的東西','盥洗用品'],['行李箱帶的東西','常備藥品'],['行李箱帶的東西','充電線與轉接頭'],['出門前要帶的東西','護照'],['出門前要帶的東西','手機'],['出門前要帶的東西','錢包與現金'],['出門前要帶的東西','行動電源（不可託運）'],['出門前要帶的東西','電子機票／登機證']];
 const BK=[['證件錢包','護照'],['證件錢包','電子機票／登機證'],['證件錢包','現金與信用卡'],['電子用品','手機與充電線'],['電子用品','行動電源（隨身帶，不可託運）'],['盥洗與藥品','牙刷牙膏'],['盥洗與藥品','常備藥'],['其他','折疊傘']];
 const CT={
   日本:{e:'🇯🇵',st:'sakura',ap:['NRT','東京成田'],prep:['填寫 Visit Japan Web','預訂新幹線與熱門景點'],pack:[['電子用品','轉接頭（日本插座與台灣相同）']],todo:[['吃','拉麵、壽司'],['買','藥妝店採買'],['拍照','神社與鳥居']]},
@@ -1114,7 +1137,7 @@ function tplData(c,title,dep,back){
     return {id:uid(),date:ymd(d),title:i===0?'抵達'+(T.ap[1]?'・'+T.ap[1].replace(/機場|國際/g,''):''):last?'返程':'自由安排',items:i===0?[{id:uid(),time:'',title:'抵達'+(T.ap[1]||'目的地'),tr:'飛機',note:'',must:false}]:last?[{id:uid(),time:'',title:'前往機場，搭機返台',tr:'飛機',note:'',must:false}]:[]}});
   const fl=T.ap[0]&&dep?[{id:uid(),dir:'去程',airline:'',no:'',fromCode:'TPE',fromCity:'台北桃園',toCode:T.ap[0],toCity:T.ap[1],date:dep,dep:'',arrDate:dep,arr:'',note:''},...(back?[{id:uid(),dir:'回程',airline:'',no:'',fromCode:T.ap[0],fromCity:T.ap[1],toCode:'TPE',toCity:'台北桃園',date:back,dep:'',arrDate:back,arr:'',note:''}]:[])]:[];
   return normalize({trip:{title,tagline:'',depart:dep?dep+'T09:00':'',back:back||''},cover:{mode:'scene',style:T.st,seed:1+Math.floor(Math.random()*1e6)},flights:fl,days,hotels:[],
-    todoCats:[...new Set(T.todo.map(x=>x[0]))],todos:T.todo.map(x=>pk(...x)),prep:[...BP,...T.prep].map(li),pack:[...BK,...T.pack].map(x=>pk(...x))});
+    todoCats:[...new Set(T.todo.map(x=>x[0]))],todos:T.todo.map(x=>pk(...x)),prep:[...BP,...T.prep].map(li),pack:[...BK,...T.pack].map(x=>pk(...x)),notes:BN.map(x=>pk(...x))});
 }
 function renderTrips(){
   const cur=curTrip().id;
@@ -1198,7 +1221,21 @@ function exPoints(){
     const d=days.find(z=>z.id===sel);
     if(d&&h.inDate&&d.date>=h.inDate&&d.date<=(h.outDate||h.inDate))pts.push({key:h.id,kind:'hotel',day:-1,n:0,title:h.name,time:'',x:h});
   });
-  return pts.map(exFill);
+  pts.forEach(exFill);exMarks(pts);
+  return pts;
+}
+/* Google 路線圖會依停靠順序在每個地點標上 A、B、C…，這裡算出同樣的字母，清單和地圖才對得起來 */
+const exLet=i=>String.fromCharCode(65+i);
+function exMarks(pts){
+  const stops=[];
+  pts.forEach(p=>{
+    p.mk='';if(p.kind!=='item')return;
+    const q=exGq(p);if(!q)return;
+    if(stops.length&&stops[stops.length-1]===q){p.mk=exLet(stops.length-1);return}
+    if(stops.length>=10)return;
+    stops.push(q);p.mk=exLet(stops.length-1);
+  });
+  pts.stops=stops;
 }
 function exList(pts){
   const el=$('#exList');if(!el)return;
@@ -1207,7 +1244,7 @@ function exList(pts){
   const groups=[];
   days.forEach((d,di)=>{const g=pts.filter(p=>p.kind==='item'&&p.day===di);if(g.length)groups.push([`Day ${di+1} · ${md(d.date)}（${wk(d.date)}）${d.title||''}`,EX_PAL[di%EX_PAL.length],g])});
   const hs=pts.filter(p=>p.kind==='hotel');if(hs.length)groups.push(['住宿','#FFFFFF',hs]);
-  const row=(p,c)=>`<li><button type="button" class="exrow" data-act="ex-focus" data-key="${p.key}"><i class="exn" style="background:${c}">${p.kind==='hotel'?'宿':p.n}</i><span class="txt">${esc(p.title)}</span>${p.time?`<small>${esc(p.time)}</small>`:''}</button></li>`;
+  const row=(p,c)=>`<li><button type="button" class="exrow" data-act="ex-focus" data-key="${p.key}"><i class="exn" style="background:${c}">${p.kind==='hotel'?'宿':p.mk||'–'}</i><span class="txt">${esc(p.title)}</span>${p.time?`<small>${esc(p.time)}</small>`:''}</button></li>`;
   el.innerHTML=`<div class="cards">`+groups.map(([t,c,g])=>`<div class="card group exg"><h3 style="background:${c}">${esc(t)}</h3><ul class="rows">${g.map(p=>row(p,c)).join('')}</ul></div>`).join('')+`</div>`;
 }
 const exEnc=encodeURIComponent;
@@ -1235,13 +1272,12 @@ function exGoogle(){
   const box=$('#exG');if(!box)return;
   const pts=exPoints();exLast=pts;
   const i=$('#exInfo'),st=$('#exStat');
-  let stops=pts.filter(p=>p.kind==='item').map(exGq).filter(Boolean);
-  stops=stops.filter((q,k)=>q!==stops[k-1]).slice(0,10);
+  const stops=pts.stops||[];
   if(!stops.length){exGNote('這天還沒有可以定位的地點');return}
   const src=stops.length===1?`${EX_EMB}&q=${exEnc(stops[0])}`:`${EX_EMB}&saddr=${exEnc(stops[0])}&daddr=${stops.slice(1).map(exEnc).join('+to:')}`;
   exSetFrame(src);
   const link=stops.length===1?`https://www.google.com/maps/search/?api=1&query=${exEnc(stops[0])}`:`https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=${exEnc(stops[0])}&destination=${exEnc(stops[stops.length-1])}`+(stops.length>2?`&waypoints=${stops.slice(1,-1).map(exEnc).join('%7C')}`:'');
-  if(i){i.hidden=false;i.innerHTML=`<b>Google 地圖路線</b><small>${stops.length} 個停靠點</small><a class="maplink" href="${esc(link)}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`}
+  if(i){i.hidden=false;i.innerHTML=`<b>Google 地圖路線</b><small>地圖上的 ${stops.map((_,k)=>exLet(k)).join('、')} 對應下方清單</small><a class="maplink" href="${esc(link)}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`}
   if(st)st.textContent='如果上方是空白，可能是目前的環境不允許嵌入 Google 地圖，請按「在 Google 地圖開啟」。';
 }
 function exGooglePlace(key){
@@ -1279,7 +1315,7 @@ function fixGrid(){
   });
   flush();
 }
-function renderAll(){renderTrips();renderHero();renderFlights();renderDays(false);renderTransit();renderExplore();renderHotels();['todo','prep','pack'].forEach(renderList);renderFoot();fixGrid();}
+function renderAll(){renderTrips();renderHero();renderFlights();renderDays(false);renderTransit();renderExplore();renderHotels();['todo','prep','pack','notes'].forEach(renderList);renderFoot();fixGrid();}
 
 /* ---------- 彈出視窗 ---------- */
 let lastFocus=null,sheetActs={},sheetLock=false;
@@ -1399,8 +1435,8 @@ function editListItem(listId,id){
   const L=LISTS[listId],x=find(S[L.key],id);if(!x)return;
   let fields=[{key:'text',label:'項目',req:true}];
   if(L.cat){
-    const cats=[...new Set(S[L.key].map(i=>i.cat||'其他').concat(listId==='todo'?(S.todoCats||[]):[]))];
-    fields=fields.concat([{key:'cat',label:'分類（選曾用過的）',type:'select',options:cats},{key:'newcat',label:'或輸入新分類（選填，會取代上面的選擇）'}]);
+    const cats=L.fixed?L.fixed.slice():[...new Set(S[L.key].map(i=>i.cat||'其他').concat(listId==='todo'?(S.todoCats||[]):[]))];
+    fields=fields.concat(L.fixed?[{key:'cat',label:'分類',type:'select',options:cats}]:[{key:'cat',label:'分類（選曾用過的）',type:'select',options:cats},{key:'newcat',label:'或輸入新分類（選填，會取代上面的選擇）'}]);
   }
   const dys=sortedDays(),dl=dys.map((d,k)=>`${dayName(k)}（${md(d.date)}）`),vals={...x,cat:x.cat||'其他'};
   if(listId==='todo'){fields.push({key:'dayLbl',label:'屬於哪一天',type:'select',options:['不分天',...dl]});const o=dayOf(x.day);vals.dayLbl=o?dl[o.i]:'不分天'}
@@ -1481,7 +1517,8 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('change',e=>{
   const s=e.target.closest&&e.target.closest('select.catsel');if(!s)return;
-  const inp=s.form.elements.cat;inp.hidden=s.value!=='__new';
+  const inp=s.form.elements.cat;if(!inp){ui.lastCat=s.value;return}
+  inp.hidden=s.value!=='__new';
   if(inp.hidden)ui.lastCat=s.value;else inp.focus();
 });
 document.addEventListener('submit',e=>{
@@ -1565,7 +1602,7 @@ $('#editBtn').addEventListener('click',()=>{
 const NK='tabi-techo-nav';
 const navPref={pos:'top',hide:false,fx:null,fy:.4};
 try{Object.assign(navPref,JSON.parse(localStorage.getItem(NK)||'{}'))}catch(e){}
-const NAVS={flights:'航班',days:'行程',transit:'交通',explore:'看透透',todo:'待辦',hotels:'住宿',prep:'出發前',pack:'行李'};
+const NAVS={flights:'航班',days:'行程',transit:'交通',explore:'看透透',todo:'待辦',hotels:'住宿',prep:'出發前',pack:'行李',notes:'注意事項'};
 const NAV_DEF=Object.keys(NAVS);
 navPref.order=(Array.isArray(navPref.order)?navPref.order:[]).filter(k=>NAVS[k]);
 NAV_DEF.forEach(k=>{if(!navPref.order.includes(k))navPref.order.push(k)});
