@@ -339,8 +339,9 @@ body.sideopen .side-scrim{display:block}
   .wrap{max-width:1120px}
   main{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:dense;gap:2.2rem 2rem;align-items:start}
   main>#top,main>#days,main>#transit,main>#explore,main>#foot,main>.hint{grid-column:1/-1}
-  .hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:stretch}
-  .hero .hero-ill,.hero .cover-img{border-bottom:0;border-right:2px solid var(--ink);align-self:start}
+  .hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);align-items:stretch}
+  .hero .cover-img{border-bottom:0;border-right:2px solid var(--ink);align-self:stretch}
+  .hero .hero-ill{width:calc(100% - 2rem);height:auto;margin:1rem;align-self:center;border:2px solid var(--ink);border-radius:28px}
   .hero .cover-img{height:100%;aspect-ratio:auto;min-height:300px}
   .hero-body{justify-content:center}
   .tl-i{grid-template-columns:4rem 22px minmax(0,1fr)}
@@ -403,13 +404,6 @@ body.sideopen .side-scrim{display:block}
 .addrow select[name="day"]{flex:0 1 7rem}
 
 /* 看透透 */
-#exMap{height:60vh;min-height:340px;max-height:560px;border:2px solid var(--ink);border-radius:32px;overflow:hidden;isolation:isolate;background:var(--sand);position:relative;z-index:0}
-.exi{background:none;border:0}
-.exm{width:32px;height:32px;border:2px solid #3E3A39;border-radius:50%;display:grid;place-items:center;font:400 14px/1 var(--font);color:#3E3A39}
-.leaflet-container{font-family:var(--font)}
-.leaflet-popup-content-wrapper{border:2px solid #3E3A39;border-radius:20px;box-shadow:none;color:#3E3A39}
-.leaflet-popup-content{margin:.6rem .9rem;line-height:1.5}
-.leaflet-popup-content a{color:#3E3A39}
 #exStat{margin-top:.2rem}
 .exg{margin-top:0}
 .exrow{display:flex;align-items:center;gap:.6rem;width:100%;text-align:left;background:none;border:0;padding:.1rem 0}
@@ -418,7 +412,31 @@ body.sideopen .side-scrim{display:block}
 .exrow .txt{flex:1;min-width:0;overflow-wrap:anywhere}
 .exn{flex:none;width:28px;height:28px;border:2px solid var(--ink);border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:.8rem;line-height:1}
 #explore .daytabs{margin-bottom:.2rem}
+@media (min-width:1024px){
+  main>.span2{grid-column:1/-1}
+  .legs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem;align-items:start}
+  .legs li.leg,.legs li.leg:first-child{border:2px solid var(--ink);border-radius:26px;padding:.7rem .9rem}
+  .exbox{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,1fr);gap:1rem;align-items:start}
+  #exList{max-height:min(74vh,680px);overflow-y:auto;padding:2px 4px 2px 2px}
+}
+.exbox{display:flex;flex-direction:column;gap:1rem}
+@media (min-width:1024px){.exbox{display:grid}}
+.excol{display:flex;flex-direction:column;gap:.5rem;min-width:0}
+.exst{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.exst .sec-sub{margin:0;flex:1;min-width:12rem}
+.exrow.off{opacity:.7}
+.exinfo{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;border:2px solid var(--ink);border-radius:24px;background:var(--white);padding:.4rem .9rem}
+.exinfo small{color:var(--ink-soft)}
+.exinfo .maplink{margin:0 0 0 auto}
+#exG{height:60vh;min-height:340px;max-height:560px;border:2px solid var(--ink);border-radius:32px;overflow:hidden;background:var(--sand);position:relative;z-index:0;isolation:isolate}
+#exG[hidden]{display:none}
+@media (min-width:1024px){#exG{height:min(74vh,680px);max-height:none}}
+.exgf{display:block;width:100%;height:100%;border:0}
+.exg-note{height:100%;display:grid;place-items:center;text-align:center;padding:1rem;color:var(--ink-soft)}
 </style>
+
+
+
 </head>
 <body>
 
@@ -1131,142 +1149,137 @@ function delTrip(){
   const t=curTrip();
   mutate(()=>{ROOT.trips.splice(ROOT.trips.indexOf(t),1);setAct(ROOT.trips[0].id);S=curTrip().data;ui.day=ui.tday=null},`已刪除「${t.name}」`,true);
 }
-/* ---------- 看透透：依日期分類的互動式地圖（Leaflet + OpenStreetMap，地點用 Nominatim 查座標並快取在本機） ---------- */
+/* ---------- 看透透：依日期分類，用 Google 地圖 iframe 嵌入當天路線（地名交給 Google 解析，不需要 API 金鑰） ---------- */
 const EX_PAL=['#FFB7AE','#B8DFF5','#BFE8C0','#DCCDF7','#FFD2AE','#FFC8DE','#BEEBDD','#FFE59A'];
-const EX_LEAF='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/';
-const GEO_KEY='tabi-geo-v1',COORD=/^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/;
-let geoCache={};try{geoCache=JSON.parse(localStorage.getItem(GEO_KEY)||'{}')}catch(e){}
-const geoSave=()=>{try{localStorage.setItem(GEO_KEY,JSON.stringify(geoCache))}catch(e){}};
-let exMap=null,exLayer=null,exMarkers={},exLoadP=null,exRun=0,exSeen=false,exObs=null;
-const exFail=new Set();
-function exFill(p){
-  const x=p.x,raw=String(x.addr||'').trim(),title=p[p.nk]||'',ct=curTrip().country;
-  const suf=q=>ct&&ct!=='其他'&&!q.includes(ct)?q+' '+ct:q;
-  let qs=[];
-  if(raw){
-    const u=asUrl(raw);
-    if(u){const c=urlPlace(u),m=COORD.exec(c||'');if(m){p.ll=[+m[1],+m[2]];p.qs=[];return p}if(c)qs.push(suf(c))}
-    else qs.push(suf(raw));
+const EX_CC={日本:'jp',韓國:'kr',泰國:'th',越南:'vn',新加坡:'sg',美國:'us'};
+const COORD=/^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/;
+let exGSrc='',exLast=[];
+const exCC=()=>EX_CC[(curTrip()||{}).country]||'';
+const EX_PRE=/^(抵達|到達|抵|前往|出發|搭乘|搭|乘|入住|退房|參觀|遊覽|逛|吃|品嚐|午餐|晚餐|早餐|宵夜|下午茶|在|於)\s*/;
+const EX_SUF=/\s*(入住|退房|寄放行李|放行李|取行李|散步|周邊|附近|逛街|用餐|拍照|出發|集合|返台|返回|回台灣)$/;
+function exClean(t){let o=String(t).trim();for(let k=0;k<3;k++){const n=o.replace(EX_PRE,'').replace(EX_SUF,'').trim();if(n===o)break;o=n}return o}
+/* 行程標題常是「動作＋地點」，不是可以直接查的地名，所以拆出幾個可能的地名依序去查 */
+function exCands(p){
+  const out=[],add=q=>{q=String(q||'').replace(/\s+/g,' ').trim();if(q.length>=2&&q.length<=60&&!out.includes(q))out.push(q)};
+  const x=p.x,raw=String(x.addr||'').trim();
+  if(raw){const u=asUrl(raw);if(u){const c=urlPlace(u);if(c&&!COORD.test(c))add(c)}else add(raw)}
+  const t=String(p.title||'').trim();
+  if(p.kind==='hotel'){add(t);return out.slice(0,4)}
+  if(/入住|退房|旅宿|飯店|民宿|旅館/.test(t)){
+    const hs=S.hotels.filter(h=>h.name||h.addr);
+    const h=hs.find(h=>p.date&&h.inDate&&p.date>=h.inDate&&p.date<=(h.outDate||h.inDate))||hs[0];
+    if(h){const a=String(h.addr||'').trim();if(a&&!asUrl(a))add(a);if(h.name)add(h.name)}
   }
-  if(title)qs.push(suf(title));
-  p.qs=[...new Set(qs)];
-  const hit=p.qs.find(q=>geoCache[q]);
-  p.ll=hit?geoCache[hit]:null;
+  const whole=t.split(/[：:]/).pop(),cc=exCC();
+  const tr=/搭|乘|往|電車|地鐵|巴士|新幹線|JR|特急|Skyliner|Haruka/i.test(t);
+  const parts=[];
+  const push=v=>{v=exClean(v);if(v.length<2||/搭|往|乘/.test(v))return;if(tr&&!/[站場駅港]$/.test(v)){parts.push(v+'站');if(cc==='jp')parts.push(v+'駅')}parts.push(v)};
+  const dest=/(?:往|回|到|至)([^\s・、，,（）()]{2,})/.exec(whole);if(dest)push(dest[1]);
+  const pre=/^(.{2,}?)(?:搭|乘|坐)/.exec(whole);if(pre)push(pre[1]);
+  push(whole);
+  whole.split(/[・･·\/／、，,（）()]|➔|→/).forEach(push);
+  parts.forEach(add);
+  return out.slice(0,7);
+}
+function exFill(p){
+  const raw=String(p.x.addr||'').trim();
+  if(raw){const u=asUrl(raw);if(u){const m=COORD.exec(urlPlace(u)||'');if(m){p.ll=[+m[1],+m[2]];p.qs=[];return p}}}
+  p.qs=exCands(p);p.ll=null;
   return p;
 }
 function exPoints(){
   const days=sortedDays(),sel=ui.exDay,pts=[];
   days.forEach((d,di)=>{
-    if(sel!=='all'&&sel!==d.id)return;
-    sortedItems(d).forEach((x,i)=>pts.push({key:x.id,kind:'item',day:di,n:i+1,title:x.title||'',time:x.time||'',x,nk:'title'}));
+    if(sel!==d.id)return;
+    sortedItems(d).forEach((x,i)=>pts.push({key:x.id,kind:'item',day:di,dayId:d.id,date:d.date,n:i+1,title:x.title||'',time:x.time||'',x}));
   });
   S.hotels.forEach(h=>{
     if(!h.name)return;
-    let show=sel==='all';
-    if(!show){const d=days.find(z=>z.id===sel);show=!!(d&&h.inDate&&d.date>=h.inDate&&d.date<=(h.outDate||h.inDate))}
-    if(show)pts.push({key:h.id,kind:'hotel',day:-1,n:0,title:h.name,time:'',x:h,nk:'name',name:h.name});
+    const d=days.find(z=>z.id===sel);
+    if(d&&h.inDate&&d.date>=h.inDate&&d.date<=(h.outDate||h.inDate))pts.push({key:h.id,kind:'hotel',day:-1,n:0,title:h.name,time:'',x:h});
   });
   return pts.map(exFill);
-}
-function exLoad(){
-  if(window.L)return Promise.resolve();
-  if(!exLoadP)exLoadP=new Promise((ok,no)=>{
-    const l=document.createElement('link');l.rel='stylesheet';l.href=EX_LEAF+'leaflet.min.css';document.head.appendChild(l);
-    const sc=document.createElement('script');sc.src=EX_LEAF+'leaflet.min.js';sc.onload=ok;sc.onerror=()=>{exLoadP=null;no()};document.head.appendChild(sc);
-  });
-  return exLoadP;
-}
-async function exInit(){
-  if(exMap)return true;
-  try{await exLoad()}catch(e){const t=$('#exStat');if(t)t.textContent='地圖載入失敗，請確認網路連線後重新整理。';return false}
-  const el=$('#exMap');if(!el)return false;
-  exMap=L.map(el,{zoomControl:true}).setView([30,120],3);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(exMap);
-  exLayer=L.layerGroup().addTo(exMap);
-  return true;
-}
-function exStatus(pts,busy){
-  const t=$('#exStat');if(!t)return;
-  const ok=pts.filter(p=>p.ll).length,miss=pts.filter(p=>!p.ll&&p.qs.every(q=>exFail.has(q))).length;
-  t.textContent=!pts.length?'':(busy?`定位中… 已找到 ${ok} / ${pts.length} 個地點`:(miss?`有 ${miss} 個地點找不到位置；可在編輯行程的「地址/網址」貼上 Google 地圖網址，或寫更精準的地址。`:`共 ${ok} 個地點`));
 }
 function exList(pts){
   const el=$('#exList');if(!el)return;
   const days=sortedDays();
-  if(!pts.length){el.innerHTML='<p class="empty">這天還沒有行程地點。</p>';return}
+  if(!pts.length){el.innerHTML='<p class="nothing">這天還沒有行程地點。</p>';return}
   const groups=[];
   days.forEach((d,di)=>{const g=pts.filter(p=>p.kind==='item'&&p.day===di);if(g.length)groups.push([`Day ${di+1} · ${md(d.date)}（${wk(d.date)}）${d.title||''}`,EX_PAL[di%EX_PAL.length],g])});
   const hs=pts.filter(p=>p.kind==='hotel');if(hs.length)groups.push(['住宿','#FFFFFF',hs]);
-  el.innerHTML=`<div class="cards">`+groups.map(([t,c,g])=>`<div class="card group exg"><h3 style="background:${c}">${esc(t)}</h3><ul class="rows">${g.map(p=>`<li><button type="button" class="exrow" data-act="ex-focus" data-key="${p.key}"${p.ll?'':' disabled'}><i class="exn" style="background:${c}">${p.kind==='hotel'?'宿':p.n}</i><span class="txt">${esc(p.title)}</span>${p.time?`<small>${esc(p.time)}</small>`:''}${p.ll?'':'<small>找不到位置</small>'}</button></li>`).join('')}</ul></div>`).join('')+`</div>`;
+  const row=(p,c)=>`<li><button type="button" class="exrow" data-act="ex-focus" data-key="${p.key}"><i class="exn" style="background:${c}">${p.kind==='hotel'?'宿':p.n}</i><span class="txt">${esc(p.title)}</span>${p.time?`<small>${esc(p.time)}</small>`:''}</button></li>`;
+  el.innerHTML=`<div class="cards">`+groups.map(([t,c,g])=>`<div class="card group exg"><h3 style="background:${c}">${esc(t)}</h3><ul class="rows">${g.map(p=>row(p,c)).join('')}</ul></div>`).join('')+`</div>`;
 }
-function exDraw(pts,fit){
-  exList(pts);
-  if(!exMap||!window.L)return;
-  exLayer.clearLayers();exMarkers={};
-  const bounds=[],byDay={};
-  pts.forEach(p=>{
-    if(!p.ll)return;
-    bounds.push(p.ll);
-    const hotel=p.kind==='hotel',col=hotel?'#FFFFFF':EX_PAL[p.day%EX_PAL.length];
-    const icon=L.divIcon({className:'exi',html:`<div class="exm" style="background:${col}">${hotel?'宿':p.n}</div>`,iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-14]});
-    const dd=hotel?'住宿':`Day ${p.day+1}${p.time?' · '+esc(p.time):''}`;
-    const m=L.marker(p.ll,{icon,title:p.title}).addTo(exLayer).bindPopup(`<b>${esc(p.title)}</b><br><small>${dd}</small><br><a href="${esc(mapUrl(p.x.addr||p.title))}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`);
-    exMarkers[p.key]=m;
-    if(!hotel)(byDay[p.day]=byDay[p.day]||[]).push(p.ll);
-  });
-  Object.values(byDay).forEach(a=>{if(a.length>1)L.polyline(a,{color:'#3E3A39',weight:3,opacity:.75,dashArray:'2 8',lineCap:'round'}).addTo(exLayer)});
-  if(fit){
-    if(bounds.length===1)exMap.setView(bounds[0],15);
-    else if(bounds.length>1)exMap.fitBounds(bounds,{padding:[40,40],maxZoom:16});
-  }
+const exEnc=encodeURIComponent;
+function exGq(p){
+  if(p.ll&&!(p.qs&&p.qs.length))return p.ll[0]+','+p.ll[1];
+  let q=(p.qs&&p.qs[0])||'';
+  if(!q)return '';
+  const ct=(curTrip()||{}).country;
+  if(ct&&ct!=='其他'&&!q.includes(ct)&&!COORD.test(q))q+=' '+ct;
+  return q;
 }
-async function exStart(fit){
-  if(!exSeen)return;
-  if(!(await exInit()))return;
-  const run=++exRun,pts=exPoints(),need=pts.filter(p=>!p.ll);
-  exDraw(pts,fit);exStatus(pts,need.length>0);
-  for(let k=0;k<need.length;k++){
-    const p=need[k];
-    for(const q of p.qs){
-      if(exFail.has(q))continue;
-      try{
-        const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=zh-TW&q='+encodeURIComponent(q));
-        const j=await r.json();
-        if(j&&j[0]){const ll=[+j[0].lat,+j[0].lon];geoCache[q]=ll;geoSave();p.ll=ll}else exFail.add(q);
-      }catch(e){}
-      if(run!==exRun)return;
-      if(p.ll)break;
-      await new Promise(r=>setTimeout(r,1100));
-      if(run!==exRun)return;
-    }
-    if(run!==exRun)return;
-    exDraw(pts,false);exStatus(pts,k<need.length-1);
-    if(k<need.length-1)await new Promise(r=>setTimeout(r,1100));
-    if(run!==exRun)return;
-  }
-  if(run===exRun&&need.length)exDraw(pts,true);
+function exSetFrame(src){
+  const box=$('#exG');if(!box)return;
+  if(exGSrc===src&&box.querySelector('iframe'))return;
+  exGSrc=src;
+  box.innerHTML=`<iframe class="exgf" title="Google 地圖" src="${esc(src)}" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>`;
+}
+function exGNote(msg){
+  const box=$('#exG'),i=$('#exInfo'),st=$('#exStat');
+  exGSrc='';if(box)box.innerHTML=`<div class="exg-note">${esc(msg)}</div>`;
+  if(i)i.hidden=true;if(st)st.textContent='';
+}
+const EX_EMB='https://www.google.com/maps?hl=zh-TW&output=embed';
+function exGoogle(){
+  const box=$('#exG');if(!box)return;
+  const pts=exPoints();exLast=pts;
+  const i=$('#exInfo'),st=$('#exStat');
+  let stops=pts.filter(p=>p.kind==='item').map(exGq).filter(Boolean);
+  stops=stops.filter((q,k)=>q!==stops[k-1]).slice(0,10);
+  if(!stops.length){exGNote('這天還沒有可以定位的地點');return}
+  const src=stops.length===1?`${EX_EMB}&q=${exEnc(stops[0])}`:`${EX_EMB}&saddr=${exEnc(stops[0])}&daddr=${stops.slice(1).map(exEnc).join('+to:')}`;
+  exSetFrame(src);
+  const link=stops.length===1?`https://www.google.com/maps/search/?api=1&query=${exEnc(stops[0])}`:`https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=${exEnc(stops[0])}&destination=${exEnc(stops[stops.length-1])}`+(stops.length>2?`&waypoints=${stops.slice(1,-1).map(exEnc).join('%7C')}`:'');
+  if(i){i.hidden=false;i.innerHTML=`<b>Google 地圖路線</b><small>${stops.length} 個停靠點</small><a class="maplink" href="${esc(link)}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`}
+  if(st)st.textContent='如果上方是空白，可能是目前的環境不允許嵌入 Google 地圖，請按「在 Google 地圖開啟」。';
+}
+function exGooglePlace(key){
+  const p=exLast.find(z=>z.key===key);if(!p)return;
+  const q=exGq(p)||p.title,i=$('#exInfo');
+  exSetFrame(`${EX_EMB}&q=${exEnc(q)}`);
+  if(i){i.hidden=false;i.innerHTML=`<b>${esc(p.title)}</b><small>${p.kind==='hotel'?'住宿':`Day ${p.day+1}${p.time?' · '+esc(p.time):''}`}</small><button type="button" class="btn sm" data-act="ex-route">看整天路線</button><a class="maplink" href="${esc(mapUrl(p.x.addr||q))}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`}
 }
 function renderExplore(){
   const box=$('#explore');if(!box)return;
   const days=sortedDays();
-  if(!ui.exDay||(ui.exDay!=='all'&&!days.some(d=>d.id===ui.exDay)))ui.exDay='all';
-  if(!$('#exMap')){
-    box.innerHTML=secHead('explore','看透透','依行程日期分類的地圖：點日期只看當天的路線，點下方地點可在地圖上找到它')+`<div id="exTabs"></div><div id="exMap" role="region" aria-label="行程地圖"></div><p class="sec-sub" id="exStat" role="status"></p><div id="exList"></div>`;
-    if(exMap){try{exMap.remove()}catch(e){}exMap=null}
-    if(exObs)exObs.disconnect();
-    if('IntersectionObserver' in window){
-      exObs=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){const first=!exSeen;exSeen=true;if(first)exStart(true);else if(exMap)exMap.invalidateSize()}},{rootMargin:'300px'});
-      exObs.observe($('#exMap'));
-    }else{exSeen=true}
+  if((!ui.exDay||!days.some(d=>d.id===ui.exDay))&&days[0])ui.exDay=days[0].id;
+  if(!$('#exG')){
+    box.innerHTML=secHead('explore','看透透','依行程日期分類的 Google 地圖：點日期看當天的路線，點地點可定位到它')+`<div id="exTabs"></div><div class="exbox"><div class="excol"><div id="exG" role="region" aria-label="Google 地圖"></div><div id="exInfo" class="exinfo" hidden></div><p class="sec-sub" id="exStat" role="status"></p></div><div id="exList"></div></div>`;
+    exGSrc='';
   }
   const tb=$('#exTabs'),old=tb.querySelector('.daytabs'),sl=old?old.scrollLeft:0;
   const dt=(k,a,b,c)=>`<button type="button" class="dt" role="tab" aria-selected="${ui.exDay===k}" data-act="extab" data-id="${k}"><small>${a}</small><b>${b}</b><small>${c||'&nbsp;'}</small></button>`;
-  tb.innerHTML=`<div class="daytabs" role="tablist" aria-label="依日期篩選地圖">${dt('all','ALL','全部','')}${days.map((d,i)=>dt(d.id,'Day '+(i+1),md(d.date),wk(d.date))).join('')}</div>`;
+  tb.innerHTML=`<div class="daytabs" role="tablist" aria-label="依日期篩選地圖">${days.map((d,i)=>dt(d.id,'Day '+(i+1),md(d.date),wk(d.date))).join('')}</div>`;
   tb.querySelector('.daytabs').scrollLeft=sl;
   exList(exPoints());
-  if(exSeen)exStart(false);
+  exGoogle();
 }
-function renderAll(){renderTrips();renderHero();renderFlights();renderDays(false);renderTransit();renderExplore();renderHotels();['todo','prep','pack'].forEach(renderList);renderFoot();}
+/* 電腦版：兩欄排版時，落單的那一欄自動撐滿整排，避免半邊空白 */
+function fixGrid(){
+  const main=$('main');if(!main)return;
+  const FULL=new Set(['top','days','transit','explore','foot']);
+  let run=[];
+  const flush=()=>{if(run.length%2===1)run[run.length-1].classList.add('span2');run=[]};
+  [...main.children].forEach(el=>{
+    el.classList.remove('span2');
+    if(el.hidden)return;
+    if(FULL.has(el.id)){flush();return}
+    if(el.classList.contains('sec'))run.push(el);
+  });
+  flush();
+}
+function renderAll(){renderTrips();renderHero();renderFlights();renderDays(false);renderTransit();renderExplore();renderHotels();['todo','prep','pack'].forEach(renderList);renderFoot();fixGrid();}
 
 /* ---------- 彈出視窗 ---------- */
 let lastFocus=null,sheetActs={},sheetLock=false;
@@ -1445,8 +1458,9 @@ document.addEventListener('click',e=>{
     case 'login':askPw();break;
     case 'logout':logout();break;
     case 'tday':ui.tday=id;renderTransit();break;
-    case 'extab':ui.exDay=id;renderExplore();exStart(true);break;
-    case 'ex-focus':{const m=exMarkers[t.dataset.key];if(m&&exMap){document.getElementById('exMap').scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});exMap.setView(m.getLatLng(),Math.max(exMap.getZoom(),16));m.openPopup()}break}
+    case 'extab':ui.exDay=id;renderExplore();break;
+    case 'ex-route':exGoogle();break;
+    case 'ex-focus':document.getElementById('exG').scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});exGooglePlace(t.dataset.key);break;
     case 'ttab':ui.todoDay=id;renderList('todo');break;
     case 'edit-leg':{const d=find(S.days,t.dataset.day),x=d&&find(d.items,id);if(!x)break;openForm({title:'編輯交通方式',fields:[{key:'tr',label:'交通方式',type:'select',options:TRS},{key:'trNote',label:'搭乘方式備註',type:'textarea',ph:'例如：JR 山手線往新宿，搭 3 站；月台 2 號'}],values:x,onSave:v=>mutate(()=>Object.assign(x,v))});break}
     case 'goto-item':{ui.day=t.dataset.day;renderDays(true);document.getElementById('days').scrollIntoView({behavior:reduced()?'auto':'smooth',block:'start'});setTimeout(()=>{const el=document.getElementById('it-'+id),c=el&&el.querySelector('.tl-c');if(c){el.scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});c.style.animation='flash 1.6s';setTimeout(()=>{c.style.animation=''},1800)}},reduced()?0:450);break}
@@ -1560,7 +1574,7 @@ function renderNav(){
   $('#nav').innerHTML='<a href="#top" data-nav="top">首頁</a>'+navPref.order.filter(k=>!navPref.hidden.includes(k)).map(k=>`<a href="#${k}" data-nav="${k}">${NAVS[k]}</a>`).join('');
 }
 function applyOrder(){const main=$('main'),foot=$('#foot');navPref.order.forEach(k=>{const el=document.getElementById(k);if(el){main.insertBefore(el,foot);el.hidden=navPref.hidden.includes(k)}})}
-function refreshNav(){renderNav();applyOrder();applyNav();spyId='';spy()}
+function refreshNav(){renderNav();applyOrder();fixGrid();applyNav();spyId='';spy()}
 function openNavMenu(){
   const n=navPref.order.length;
   const rows=navPref.order.map((k,i)=>{const h=navPref.hidden.includes(k);return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><button type="button" class="mini eyeb${h?'':' on'}" data-sheet="tg" data-k="${k}" aria-label="${h?'已隱藏，點一下顯示':'顯示中，點一下隱藏'}" title="${h?'已隱藏':'顯示中'}">${h?SVG.eyeClosed:SVG.eyeOpen}</button><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
