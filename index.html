@@ -1043,7 +1043,7 @@ const LISTS={
   todo:{key:'todos',h:'待辦清單',sub:'依分類整理，想吃、想買、想拍的隨時加進來。可把照片或檔案拖到項目上，或點選項目後按 Ctrl+V 貼上',ph:'項目，例如：在淺草吃人形燒',cat:true},
   prep:{key:'prep',h:'出發前清單',sub:'出發前要處理的事，一項一項打勾',ph:'新增一項，例如：確認護照效期'},
   pack:{key:'pack',h:'行李清單',sub:'依分類整理，打包時逐項勾掉',ph:'物品，例如：充電線',cat:true},
-  notes:{key:'notes',h:'注意事項',sub:'出發前再核對一次。分類可以自己新增、改名或刪除（編輯模式下操作）',ph:'項目，例如：護照',cat:true,catKey:'noteCats'}
+  notes:{key:'notes',h:'注意事項',sub:'出發前再核對一次，依分類整理',ph:'物品，例如：護照',cat:true}
 };
 const LIST_PERUSER={prep:1,pack:1,notes:1};
 function catListOf(id){const L=LISTS[id];return [...new Set([...(L.catKey?(S[L.catKey]||[]):[]),...S[L.key].map(i=>i.cat||'其他')])]}
@@ -1065,7 +1065,7 @@ function renderList(id){
   const done=items.filter(i=>isOn(id,i)).length,pct=items.length?Math.round(done/items.length*100):0;
   const dtab=(k,sm,b,ft)=>`<button type="button" class="dt" role="tab" aria-selected="${ui.todoDay===k}" data-act="ttab" data-id="${k}"><small>${sm}</small><b>${b}</b><small>${ft||'&nbsp;'}</small></button>`;
   const ttabs=isTodo?`<div class="daytabs" role="tablist" aria-label="依天數篩選">${dtab('all','ALL','全部','')}${dys.map((d,k)=>dtab(d.id,'Day '+(k+1),md(d.date),wk(d.date))).join('')}</div>`:'';
-  const dayUi=isTodo?`<select name="day" class="daysel" aria-label="這是哪一天的待辦"><option value="">不分天</option>${dys.map((d,k)=>`<option value="${d.id}"${ui.todoDay===d.id?' selected':''}>${dayName(k)}</option>`).join('')}</select>`:'';
+  const dayUi='';
   const row=i=>`<li class="${isOn(id,i)?'done':''}${phSel===i.id?' sel':''}" data-item="${i.id}" data-list="${id}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${isOn(id,i)?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span>${isTodo&&ui.todoDay==='all'&&dayOf(i.day)?`<span class="mk">${dayName(dayOf(i.day).i)}</span>`:''}${tagHtml(id,i)}</label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
   let body;
   if(L.catKey){
@@ -1626,10 +1626,8 @@ function editListItem(listId,id){
     fields=fields.concat(L.fixed?[{key:'cat',label:'分類',type:'select',options:cats}]:[{key:'cat',label:'分類（選曾用過的）',type:'select',options:cats},{key:'newcat',label:'或輸入新分類（選填，會取代上面的選擇）'}]);
   }
   const dys=sortedDays(),dl=dys.map((d,k)=>`${dayName(k)}（${md(d.date)}）`),vals={...x,cat:x.cat||'其他'};
-  if(listId==='todo'){fields.push({key:'dayLbl',label:'屬於哪一天',type:'select',options:['不分天',...dl]});const o=dayOf(x.day);vals.dayLbl=o?dl[o.i]:'不分天'}
   openForm({title:'編輯項目',fields,values:vals,onSave:v=>mutate(()=>{const nc=(v.newcat||'').trim();if(L.cat)v.cat=nc||v.cat;delete v.newcat;
     if(L.catKey&&v.cat&&!(S[L.catKey]||[]).includes(v.cat))(S[L.catKey]=S[L.catKey]||[]).push(v.cat);
-    if(listId==='todo'){const k=dl.indexOf(v.dayLbl);if(k>=0)v.day=dys[k].id;else delete x.day;delete v.dayLbl}
     Object.assign(x,v)})});
 }
 function backup(){
@@ -1723,7 +1721,7 @@ document.addEventListener('submit',e=>{
   if(!text){f.elements.text.focus();return}
   const o={id:uid(),text,done:false};
   if(L.cat){const sv=f.elements.catsel.value,cv=sv==='__new'?f.elements.cat.value.trim():sv;o.cat=cv||'其他';ui.lastCat=o.cat;if(L.catKey&&!(S[L.catKey]||[]).includes(o.cat))(S[L.catKey]=S[L.catKey]||[]).push(o.cat)}
-  if(f.elements.day&&f.elements.day.value)o.day=f.elements.day.value;
+  if(id==='todo'&&ui.todoDay&&ui.todoDay!=='all'&&ui.todoDay!=='none')o.day=ui.todoDay;
   S[L.key].push(o);save();renderList(id);$(`#${id} input[name="text"]`).focus({preventScroll:true});
 });
 document.addEventListener('change',e=>{
