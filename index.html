@@ -482,6 +482,18 @@ main{gap:1.8rem}
 .dt[aria-selected="true"]{background:var(--yellow)}
 .tag{background:var(--white)}
 .hint{background:var(--sand)}
+
+/* 交通方式：移除日期標題卡，區段改成獨立小卡 */
+.tr-day{display:flex;flex-direction:column;gap:.9rem}
+.tr-day .ov{margin:0;background:var(--white)}
+.tr-day .legs{display:flex;flex-direction:column;gap:.8rem}
+.tr-day .legs li.leg,.tr-day .legs li.leg:first-child{background:var(--white);border:1.5px solid var(--ink);border-radius:26px;padding:.8rem 1rem 1rem;display:flex;flex-direction:column;gap:.6rem}
+.tr-day .leg-route{margin:0;background:var(--sand);border:0;border-radius:999px;padding:.25rem .9rem;font-size:1rem}
+.tr-day .leg-top{justify-content:flex-start}
+.tr-day .leg-lbl{margin-top:0;gap:.3rem}
+.tr-day .leg-acts{margin-top:0}
+.tr-day .nothing{padding:.3rem 0}
+@media (min-width:1024px){.tr-day .legs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem}}
 </style>
 
 
@@ -1007,7 +1019,7 @@ function renderTransit(){
     <div class="leg-acts"><a class="btn sm maplink" href="${esc(dirUrl(placeText(a),placeText(b),b.tr))}" target="_blank" rel="noopener">看路線</a></div></li>`;
   }).join('');
   box.innerHTML=head+`<div class="daytabs" role="tablist" aria-label="選擇天數">${tabs}</div>
-  <div class="card group"><h3>Day ${idx+1} · ${md(d.date)}（${wk(d.date)}）${esc(d.title||'')}</h3>${chain}${legs?`<ul class="legs">${legs}</ul>`:`<p class="nothing" style="padding:.6rem 0 .4rem">${its.length?'這天只有一個地點，不需要交通區段。':'這天還沒有行程地點。'}</p>`}</div>`;
+  <div class="tr-day">${chain}${legs?`<ul class="legs">${legs}</ul>`:`<p class="nothing" style="padding:.6rem 0 .4rem">${its.length?'這天只有一個地點，不需要交通區段。':'這天還沒有行程地點。'}</p>`}</div>`;
   const nt=$('#transit .daytabs');nt.scrollLeft=sl;
 }
 function renderHotels(){
