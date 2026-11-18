@@ -428,6 +428,11 @@ body.sideopen .side-scrim{display:block}
 @media (min-width:1024px){#exG{height:min(74vh,680px);max-height:none}}
 .exgf{display:block;width:100%;height:100%;border:0}
 .exg-note{height:100%;display:grid;place-items:center;text-align:center;padding:1rem;color:var(--ink-soft)}
+.exmapel{width:100%;height:100%;font-family:inherit}
+.exmk-w{background:none;border:0}
+.exmk{width:32px;height:32px;border:2.5px solid var(--ink);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.9rem;line-height:1;color:var(--ink);box-shadow:0 2px 0 var(--ink)}
+.exmk.hot{border-radius:10px}
+.leaflet-popup-content{font-family:inherit;line-height:1.5}
 
 /* 優化：區塊分區、同類內容統一配色與模板 */
 main{gap:1.8rem}
@@ -583,7 +588,7 @@ function normalize(o){
     hotels:fix(arr('hotels')),todos:fix(arr('todos')),todoCats:Array.isArray(o.todoCats)?o.todoCats.slice():[...new Set(arr('todos').map(i=>i.cat||'未分類'))],prep:fix(arr('prep')),pack:fix(arr('pack')),notes:fix(arr('notes'))};
 }
 function normRoot(o){
-  if(o&&Array.isArray(o.trips)){const ts=o.trips.map(t=>({id:t.id||uid(),name:t.name||'旅程',country:t.country||'其他',scope:(t.scope==='domestic'||(!t.scope&&t.country==='台灣'))?'domestic':'abroad',data:normalize(t.data)})).filter(t=>t.data);return ts.length?{trips:ts}:null}
+  if(o&&Array.isArray(o.trips)){const ts=o.trips.map(t=>({id:t.id||uid(),name:t.name||'旅程',country:t.country||'其他',region:t.region||'',scope:(t.scope==='domestic'||(!t.scope&&t.country==='台灣'))?'domestic':'abroad',data:normalize(t.data)})).filter(t=>t.data);return ts.length?{trips:ts}:null}
   const d=normalize(o);return d?{trips:[{id:'t1',name:(d.trip.title||'我的旅行').slice(0,10),country:'日本',scope:'abroad',data:d}]}:null;
 }
 const mkRoot=()=>({trips:[{id:'t1',name:'東京・京都',country:'日本',scope:'abroad',data:normalize(sample())}]});
@@ -1134,21 +1139,24 @@ const CT={
 };
 const ctAbroad=()=>Object.keys(CT).filter(k=>k!=='台灣');
 const SCOPES=['國外旅程','國內旅程'];
-function tplData(c,title,dep,back,dom){
-  const T=CT[c]||CT.其他,li=t=>({id:uid(),text:t,done:false}),pk=(g,t)=>({id:uid(),cat:g,text:t,done:false});
+const REGION_NONE='不指定（全台灣）',REGION_MULTI='多縣市／環島';
+const TW_SPECIAL=['',REGION_NONE,REGION_MULTI];
+const TW_REGIONS=[REGION_NONE,REGION_MULTI,'基隆市','台北市','新北市','桃園市','新竹市','新竹縣','苗栗縣','台中市','彰化縣','南投縣','雲林縣','嘉義市','嘉義縣','台南市','高雄市','屏東縣','宜蘭縣','花蓮縣','台東縣','澎湖縣','金門縣','連江縣'];
+function tplData(c,title,dep,back,dom,region){
+  const T0=CT[c]||CT.其他,rg=dom&&region&&!TW_SPECIAL.includes(region)?region:'',T=rg?{...T0,todo:T0.todo.map(([g,t])=>[g,g==='吃'?rg+'在地小吃':g==='拍照'?rg+'必拍景點':t])}:T0,li=t=>({id:uid(),text:t,done:false}),pk=(g,t)=>({id:uid(),cat:g,text:t,done:false});
   const d0=parseD(dep),d1=parseD(back),n=d0&&d1?Math.min(14,Math.max(1,Math.round((d1-d0)/864e5)+1)):0;
   const days=[...Array(n)].map((_,i)=>{const d=new Date(d0);d.setDate(d.getDate()+i);const last=i===n-1&&n>1;
     if(dom)return {id:uid(),date:ymd(d),title:i===0?'出發':last?'返程':'自由安排',items:[]};
     return {id:uid(),date:ymd(d),title:i===0?'抵達'+(T.ap[1]?'・'+T.ap[1].replace(/機場|國際/g,''):''):last?'返程':'自由安排',items:i===0?[{id:uid(),time:'',title:'抵達'+(T.ap[1]||'目的地'),tr:'飛機',note:'',must:false}]:last?[{id:uid(),time:'',title:'前往機場，搭機返台',tr:'飛機',note:'',must:false}]:[]}});
   const fl=!dom&&T.ap[0]&&dep?[{id:uid(),dir:'去程',airline:'',no:'',fromCode:'TPE',fromCity:'台北桃園',toCode:T.ap[0],toCity:T.ap[1],date:dep,dep:'',arrDate:dep,arr:'',note:''},...(back?[{id:uid(),dir:'回程',airline:'',no:'',fromCode:T.ap[0],fromCity:T.ap[1],toCode:'TPE',toCity:'台北桃園',date:back,dep:'',arrDate:back,arr:'',note:''}]:[])]:[];
-  return normalize({trip:{title,tagline:'',depart:dep?dep+'T09:00':'',back:back||''},cover:{mode:'scene',style:T.st,seed:1+Math.floor(Math.random()*1e6)},flights:fl,days,hotels:[],
+  return normalize({trip:{title,tagline:rg?rg+'小旅行':'',depart:dep?dep+'T09:00':'',back:back||''},cover:{mode:'scene',style:T.st,seed:1+Math.floor(Math.random()*1e6)},flights:fl,days,hotels:[],
     todoCats:[...new Set(T.todo.map(x=>x[0]))],todos:T.todo.map(x=>pk(...x)),prep:(dom?T.prep:[...BP,...T.prep]).map(li),pack:(dom?BK.filter(x=>!/護照|機票|外幣|轉接/.test(x[1])):BK).concat(T.pack).map(x=>pk(...x)),notes:(dom?BN.filter(x=>!/護照|機票/.test(x[1])):BN).map(x=>pk(...x))});
 }
 function renderTrips(){
   const cur=curTrip().id;
   const row=t=>{
-    if(ui.renaming===t.id)return `<form class="strename" data-id="${t.id}"><input name="name" value="${esc(t.name)}" maxlength="40" aria-label="分頁名稱" placeholder="分頁名稱"><select name="scope" aria-label="旅程類型">${SCOPES.map((k,i)=>`<option${(i===1)===isDom(t)?' selected':''}>${k}</option>`).join('')}</select><select name="country" aria-label="國家（國外旅程）">${ctAbroad().map(k=>`<option${k===t.country?' selected':''}>${esc(k)}</option>`).join('')}</select><div class="strow2"><button type="button" class="btn sm" data-act="rename-cancel">取消</button><button type="submit" class="btn sm primary">儲存</button></div></form>`;
-    return `<div class="strow"><button type="button" class="st" role="tab" aria-selected="${t.id===cur}" data-act="trip" data-id="${t.id}"><span class="e">${(CT[t.country]||CT.其他).e}</span><span><b>${esc(t.name)}</b><small>${isDom(t)?'國內':esc(t.country)}</small></span></button><span class="eb edit-only"><button type="button" class="mini" data-act="rename-trip" data-id="${t.id}" aria-label="編輯分頁名稱：${esc(t.name)}">✎</button></span></div>`;
+    if(ui.renaming===t.id)return `<form class="strename" data-id="${t.id}"><input name="name" value="${esc(t.name)}" maxlength="40" aria-label="分頁名稱" placeholder="分頁名稱"><select name="scope" aria-label="旅程類型">${SCOPES.map((k,i)=>`<option${(i===1)===isDom(t)?' selected':''}>${k}</option>`).join('')}</select><select name="country" aria-label="國家（國外旅程）"${isDom(t)?' style="display:none"':''}>${ctAbroad().map(k=>`<option${k===t.country?' selected':''}>${esc(k)}</option>`).join('')}</select><select name="region" aria-label="縣市（國內旅程）"${isDom(t)?'':' style="display:none"'}>${TW_REGIONS.map(k=>`<option${k===(t.region||REGION_NONE)?' selected':''}>${esc(k)}</option>`).join('')}</select><div class="strow2"><button type="button" class="btn sm" data-act="rename-cancel">取消</button><button type="submit" class="btn sm primary">儲存</button></div></form>`;
+    return `<div class="strow"><button type="button" class="st" role="tab" aria-selected="${t.id===cur}" data-act="trip" data-id="${t.id}"><span class="e">${(CT[t.country]||CT.其他).e}</span><span><b>${esc(t.name)}</b><small>${isDom(t)?'國內'+(t.region?'・'+esc(t.region):''):esc(t.country)}</small></span></button><span class="eb edit-only"><button type="button" class="mini" data-act="rename-trip" data-id="${t.id}" aria-label="編輯分頁名稱：${esc(t.name)}">✎</button></span></div>`;
   };
   $('#side').innerHTML=`<div class="side-h"><h2>🧳 我的旅程</h2><button type="button" class="mini side-close" data-act="side-close" aria-label="收合旅程選單"><span class="ic-m">✕</span><span class="ic-d">‹</span></button></div>${[['國外旅程',ROOT.trips.filter(x=>!isDom(x))],['國內旅程',ROOT.trips.filter(x=>isDom(x))]].filter(g=>g[1].length).map(g=>`<h3 class="sgrp">${g[0]}</h3>${g[1].map(row).join('')}`).join('')}<button type="button" class="add" data-act="add-trip">＋ 新增旅程</button>`;
   const ri=$('#side .strename input');if(ri&&!ri.dataset.f){ri.dataset.f=1;ri.focus();ri.select()}
@@ -1160,17 +1168,28 @@ document.addEventListener('submit',e=>{
   if(!name){toast('請填寫分頁名稱');f.elements.name.focus();return}
   const t=ROOT.trips.find(x=>x.id===f.dataset.id);ui.renaming=null;
   if(!t){renderTrips();return}
-  mutate(()=>{t.name=name;const dom=f.elements.scope.value===SCOPES[1];t.scope=dom?'domestic':'abroad';t.country=dom?'台灣':f.elements.country.value},'已更新分頁名稱');
+  mutate(()=>{t.name=name;const dom=f.elements.scope.value===SCOPES[1];t.scope=dom?'domestic':'abroad';t.country=dom?'台灣':f.elements.country.value;t.region=dom&&f.elements.region.value!==REGION_NONE?f.elements.region.value:''},'已更新分頁名稱');
 });
 $('#side').addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.renaming){e.stopPropagation();ui.renaming=null;renderTrips()}});
 const DESK=matchMedia('(min-width:1024px)');
 try{if(localStorage.getItem('sidecol')==='1')document.body.classList.add('sidecol')}catch(e){}
 function setSideCol(on){document.body.classList.toggle('sidecol',on);try{localStorage.setItem('sidecol',on?'1':'0')}catch(e){}}
 function switchTrip(id){document.body.classList.remove('sideopen');setAct(id);S=curTrip().data;ui.day=ui.tday=null;renderAll();scrollTo({top:0})}
+function scopeToggle(f){
+  if(!f||!f.elements.scope)return;
+  const sync=()=>{const dom=f.elements.scope.value===SCOPES[1],w=el=>el.closest('label')||el;w(f.elements.country).style.display=dom?'none':'';w(f.elements.region).style.display=dom?'':'none'};
+  f.elements.scope.addEventListener('change',sync);sync();
+}
+document.addEventListener('change',e=>{
+  const sel=e.target;if(!sel||sel.name!=='scope')return;
+  const f=sel.closest&&sel.closest('.strename');if(!f)return;
+  const dom=sel.value===SCOPES[1];f.elements.country.style.display=dom?'none':'';f.elements.region.style.display=dom?'':'none';
+});
 function addTrip(){
   const cs=ctAbroad();
-  openForm({title:'新增旅程',fields:[{key:'name',label:'分頁名稱',req:true,ph:'例如：首爾 4 天'},{key:'scope',label:'旅程類型（國內旅程不會有航班）',type:'select',options:SCOPES},{key:'country',label:'國家（僅國外旅程；會套用對應範本）',type:'select',options:cs},{key:'dep',label:'出發日期',type:'date',half:true},{key:'back',label:'回程日期',type:'date',half:true}],values:{country:'日本',scope:'國外旅程'},
-    onSave:v=>mutate(()=>{const dom=v.scope==='國內旅程',c=dom?'台灣':v.country;const t={id:uid(),name:v.name,country:c,scope:dom?'domestic':'abroad',data:tplData(c,v.name,v.dep,v.back,dom)};ROOT.trips.push(t);setAct(t.id);S=t.data;ui.day=ui.tday=null;scrollTo({top:0})},'已新增旅程，已套用'+'範本')});
+  openForm({title:'新增旅程',fields:[{key:'name',label:'分頁名稱',req:true,ph:'例如：首爾 4 天'},{key:'scope',label:'旅程類型（國內旅程不會有航班）',type:'select',options:SCOPES},{key:'country',label:'國家（僅國外旅程；會套用對應範本）',type:'select',options:cs},{key:'region',label:'縣市（國內旅程；之後可按 ✎ 修改）',type:'select',options:TW_REGIONS},{key:'dep',label:'出發日期',type:'date',half:true},{key:'back',label:'回程日期',type:'date',half:true}],values:{country:'日本',scope:'國外旅程',region:REGION_NONE},
+    onSave:v=>mutate(()=>{const dom=v.scope==='國內旅程',c=dom?'台灣':v.country,rg=dom&&v.region!==REGION_NONE?v.region:'';const t={id:uid(),name:v.name,country:c,region:rg,scope:dom?'domestic':'abroad',data:tplData(c,v.name,v.dep,v.back,dom,rg)};ROOT.trips.push(t);setAct(t.id);S=t.data;ui.day=ui.tday=null;scrollTo({top:0})},'已新增旅程，已套用'+'範本')});
+  scopeToggle($('#sf'));
 }
 function delTrip(){
   if(ROOT.trips.length<2){toast('至少要保留一趟旅程');return}
@@ -1251,17 +1270,15 @@ function exList(pts){
   const groups=[];
   days.forEach((d,di)=>{const g=pts.filter(p=>p.kind==='item'&&p.day===di);if(g.length)groups.push([`Day ${di+1} · ${md(d.date)}（${wk(d.date)}）${d.title||''}`,EX_PAL[di%EX_PAL.length],g])});
   const hs=pts.filter(p=>p.kind==='hotel');if(hs.length)groups.push(['住宿','#FFFFFF',hs]);
-  const row=(p,c)=>`<li><button type="button" class="exrow" data-act="ex-focus" data-key="${p.key}"><i class="exn" style="background:${c}">${p.kind==='hotel'?'宿':p.mk||'–'}</i><span class="txt">${esc(p.title)}</span>${p.time?`<small>${esc(p.time)}</small>`:''}</button></li>`;
+  const row=(p,c)=>`<li><button type="button" class="exrow${exFail.has(p.key)?' off':''}" data-act="ex-focus" data-key="${p.key}"><i class="exn" style="background:${c}">${p.kind==='hotel'?'宿':exMode==='google'?(p.mk||'–'):p.n}</i><span class="txt">${esc(p.title)}</span>${p.time?`<small>${esc(p.time)}</small>`:''}</button></li>`;
   el.innerHTML=`<div class="cards">`+groups.map(([t,c,g])=>`<div class="card group exg"><h3 style="background:${c}">${esc(t)}</h3><ul class="rows">${g.map(p=>row(p,c)).join('')}</ul></div>`).join('')+`</div>`;
 }
 const exEnc=encodeURIComponent;
 function exGq(p){
   if(p.ll&&!(p.qs&&p.qs.length))return p.ll[0]+','+p.ll[1];
-  let q=(p.qs&&p.qs[0])||'';
+  const q=(p.qs&&p.qs[0])||'';
   if(!q)return '';
-  const ct=(curTrip()||{}).country;
-  if(ct&&ct!=='其他'&&!q.includes(ct)&&!COORD.test(q))q+=' '+ct;
-  return q;
+  return exQual(q);
 }
 function exSetFrame(src){
   const box=$('#exG');if(!box)return;
@@ -1271,24 +1288,144 @@ function exSetFrame(src){
 }
 function exGNote(msg){
   const box=$('#exG'),i=$('#exInfo'),st=$('#exStat');
-  exGSrc='';if(box)box.innerHTML=`<div class="exg-note">${esc(msg)}</div>`;
+  if(exMapObj){try{exMapObj.remove()}catch(e){}exMapObj=null}exSig='';exGSrc='';if(box)box.innerHTML=`<div class="exg-note">${esc(msg)}</div>`;
   if(i)i.hidden=true;if(st)st.textContent='';
 }
 const EX_EMB='https://www.google.com/maps?hl=zh-TW&output=embed';
-function exGoogle(){
+function exGoogleFrame(pts){
   const box=$('#exG');if(!box)return;
-  const pts=exPoints();exLast=pts;
+  if(exMapObj){try{exMapObj.remove()}catch(e){}exMapObj=null;exSig=''}
+  exLast=pts;
   const i=$('#exInfo'),st=$('#exStat');
   const stops=pts.stops||[];
   if(!stops.length){exGNote('這天還沒有可以定位的地點');return}
   const src=stops.length===1?`${EX_EMB}&q=${exEnc(stops[0])}`:`${EX_EMB}&saddr=${exEnc(stops[0])}&daddr=${stops.slice(1).map(exEnc).join('+to:')}`;
   exSetFrame(src);
-  const link=stops.length===1?`https://www.google.com/maps/search/?api=1&query=${exEnc(stops[0])}`:`https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=${exEnc(stops[0])}&destination=${exEnc(stops[stops.length-1])}`+(stops.length>2?`&waypoints=${stops.slice(1,-1).map(exEnc).join('%7C')}`:'');
+  const link=exDirLink(stops);
   if(i){i.hidden=false;i.innerHTML=`<b>Google 地圖路線</b><small>地圖上的 ${stops.map((_,k)=>exLet(k)).join('、')} 對應下方清單</small><a class="maplink" href="${esc(link)}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`}
-  if(st)st.textContent='如果上方是空白，可能是目前的環境不允許嵌入 Google 地圖，請按「在 Google 地圖開啟」。';
+  if(st)st.textContent='標誌地圖載入失敗，已改用 Google 地圖。如果上方是空白，請按「在 Google 地圖開啟」。';
+}
+const exDirLink=stops=>!stops.length?'':stops.length===1?`https://www.google.com/maps/search/?api=1&query=${exEnc(stops[0])}`:`https://www.google.com/maps/dir/?api=1&travelmode=transit&origin=${exEnc(stops[0])}&destination=${exEnc(stops[stops.length-1])}`+(stops.length>2?`&waypoints=${stops.slice(1,-1).map(exEnc).join('%7C')}`:'');
+
+/* ---------- 看透透：標誌地圖（Leaflet + OpenStreetMap，不需要 API 金鑰；地名用 Nominatim 搜尋並快取在這台裝置） ---------- */
+const EX_CEN={tw:[23.7,121],jp:[36,138],kr:[36.5,127.8],th:[15.5,101],vn:[16,106.5],sg:[1.35,103.82],us:[39,-98]};
+let exMode='map',exMapObj=null,exMk={},exSig='',exTok=0,exMsg='',leafP=null,exFail=new Set();
+function loadLeaflet(){
+  if(window.L&&L.map)return Promise.resolve(true);
+  if(leafP)return leafP;
+  leafP=new Promise(res=>{
+    const css=document.createElement('link');css.rel='stylesheet';css.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css';document.head.appendChild(css);
+    const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js';
+    const fin=ok=>{if(!ok)leafP=null;res(ok)};
+    sc.onload=()=>fin(!!(window.L&&L.map));sc.onerror=()=>fin(false);
+    setTimeout(()=>fin(!!(window.L&&L.map)),8000);
+    document.head.appendChild(sc);
+  });
+  return leafP;
+}
+const GEO_KEY='geoCacheV1';let geoCache={},geoLast=0;
+try{geoCache=JSON.parse(localStorage.getItem(GEO_KEY)||'{}')||{}}catch(e){geoCache={}}
+function geoSave(){try{const k=Object.keys(geoCache);if(k.length>500)k.slice(0,150).forEach(x=>delete geoCache[x]);localStorage.setItem(GEO_KEY,JSON.stringify(geoCache))}catch(e){}}
+async function geoQuery(q,cc){
+  const key=cc+'|'+q;
+  if(Object.prototype.hasOwnProperty.call(geoCache,key))return geoCache[key]||null;
+  const w=1100-(Date.now()-geoLast);if(w>0)await new Promise(r=>setTimeout(r,w));
+  geoLast=Date.now();
+  try{
+    const r=await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=zh-TW'+(cc?'&countrycodes='+cc:'')+'&q='+encodeURIComponent(q));
+    if(!r.ok)return null;
+    const a=await r.json();
+    const v=a&&a[0]?[+(+a[0].lat).toFixed(6),+(+a[0].lon).toFixed(6)]:0;
+    geoCache[key]=v;geoSave();return v||null;
+  }catch(e){return null}
+}
+/* 搜尋時補上縣市／國家，讓同名地點不會跑到別處 */
+function exQual(q){
+  const t=curTrip()||{};
+  if(!q||COORD.test(q))return q;
+  if(isDom(t)&&t.region&&!TW_SPECIAL.includes(t.region)&&!q.includes(t.region.slice(0,2)))q=t.region+' '+q;
+  const ct=t.country;
+  if(ct&&ct!=='其他'&&!q.includes(ct))q+=' '+ct;
+  return q;
+}
+async function exResolve(p,tok){
+  if(p.ll)return p.ll;
+  const cc=exCC();
+  for(const q of (p.qs||[]).slice(0,3)){
+    if(tok!==exTok)return null;
+    const v=await geoQuery(exQual(q),cc);
+    if(v)return v;
+  }
+  return null;
+}
+function exInfoMap(msg){
+  const i=$('#exInfo'),st=$('#exStat');if(msg!=null)exMsg=msg;
+  const link=exDirLink((exLast&&exLast.stops)||[]);
+  if(i){i.hidden=false;i.innerHTML=`<b>當天地點標誌</b><small>${esc(exMsg)}</small><button type="button" class="btn sm" data-act="ex-route">看整天路線</button>${link?`<a class="maplink" href="${esc(link)}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`:''}`}
+  if(st)st.textContent='標誌位置由地名自動搜尋（OpenStreetMap）；位置不準時，請在行程的「地址/網址」填上地址或 Google 地圖網址。';
+}
+function exFit(){
+  if(!exMapObj)return;
+  const ms=Object.values(exMk);if(!ms.length)return;
+  const an=!reduced();
+  if(ms.length===1){exMapObj.setView(ms[0].getLatLng(),15,{animate:an});return}
+  exMapObj.fitBounds(L.latLngBounds(ms.map(m=>m.getLatLng())),{padding:[44,44],maxZoom:16,animate:an});
+}
+async function exBuildMap(pts,tok){
+  const box=$('#exG');if(!box)return;
+  const sig=ui.exDay+'#'+pts.map(p=>[p.key,p.n,p.title,p.x.addr||'',(p.qs||[]).join('/'),p.ll||''].join('|')).join(';')+'#'+exQual('x');
+  if(sig===exSig&&exMapObj&&box.contains(exMapObj.getContainer())){exMapObj.invalidateSize();exInfoMap();return}
+  exSig=sig;exFail=new Set();exMk={};
+  if(exMapObj){try{exMapObj.remove()}catch(e){}exMapObj=null}
+  box.innerHTML='<div id="exMapEl" class="exmapel"></div>';
+  const cc=exCC(),map=exMapObj=L.map('exMapEl',{scrollWheelZoom:false}).setView(EX_CEN[cc]||[25,121],cc==='tw'?8:5);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  const ink=(getComputedStyle(document.body).getPropertyValue('--ink')||'').trim()||'#4a3b32';
+  const line=L.polyline([],{color:ink,weight:3,opacity:.65,dashArray:'7 9'}).addTo(map);
+  const total=pts.length;let done=0,found=0;
+  exInfoMap(`定位中 0 / ${total}…`);
+  for(const p of pts){
+    if(tok!==exTok)return;
+    const ll=await exResolve(p,tok);
+    if(tok!==exTok)return;
+    done++;
+    if(ll){
+      found++;
+      const hot=p.kind==='hotel',col=hot?'#FFFFFF':EX_PAL[Math.max(0,p.day)%EX_PAL.length];
+      const icon=L.divIcon({className:'exmk-w',html:`<div class="exmk${hot?' hot':''}" style="background:${col}">${hot?'宿':p.n}</div>`,iconSize:[32,32],iconAnchor:[16,16],popupAnchor:[0,-18]});
+      const mk=L.marker(ll,{icon,title:p.title,riseOnHover:true}).addTo(map);
+      mk.bindPopup(`<b>${esc(p.title)}</b><br><small>${hot?'住宿':`Day ${p.day+1}${p.time?' · '+esc(p.time):''}`}</small><br><a href="${esc(mapUrl(p.x.addr||exQual((p.qs&&p.qs[0])||p.title)))}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`);
+      exMk[p.key]=mk;
+      line.setLatLngs(pts.filter(z=>z.kind==='item'&&exMk[z.key]).map(z=>exMk[z.key].getLatLng()));
+      if(found===1)map.setView(ll,15);else exFit();
+    }else{
+      exFail.add(p.key);
+      const b=document.querySelector(`.exrow[data-key="${p.key}"]`);if(b)b.classList.add('off');
+    }
+    exInfoMap(`定位中 ${done} / ${total}…`);
+  }
+  exInfoMap(found?`已標出 ${found} 個地點${found<total?`，另有 ${total-found} 個找不到位置（清單中顏色較淡）`:''}，編號對應下方清單`:'找不到這天地點的位置；請在行程填上地址或 Google 地圖網址，或按「在 Google 地圖開啟」');
+  setTimeout(()=>{try{map.invalidateSize()}catch(e){}},60);
+}
+async function exGoogle(){
+  const box=$('#exG');if(!box)return;
+  const pts=exPoints();exLast=pts;
+  if(!pts.length){exGNote('這天還沒有可以定位的地點');return}
+  const tok=++exTok;
+  const ok=await loadLeaflet();
+  if(tok!==exTok||!$('#exG'))return;
+  if(!ok){exMode='google';exList(pts);exGoogleFrame(pts);return}
+  if(exMode!=='map'){exMode='map';exList(pts)}
+  await exBuildMap(pts,tok);
 }
 function exGooglePlace(key){
   const p=exLast.find(z=>z.key===key);if(!p)return;
+  if(exMode==='map'&&exMapObj){
+    const mk=exMk[key];
+    if(!mk){toast('這個地點還沒找到位置，可在行程填上地址或 Google 地圖網址');return}
+    exMapObj.setView(mk.getLatLng(),Math.max(exMapObj.getZoom(),15),{animate:!reduced()});
+    mk.openPopup();return;
+  }
   const q=exGq(p)||p.title,i=$('#exInfo');
   exSetFrame(`${EX_EMB}&q=${exEnc(q)}`);
   if(i){i.hidden=false;i.innerHTML=`<b>${esc(p.title)}</b><small>${p.kind==='hotel'?'住宿':`Day ${p.day+1}${p.time?' · '+esc(p.time):''}`}</small><button type="button" class="btn sm" data-act="ex-route">看整天路線</button><a class="maplink" href="${esc(mapUrl(p.x.addr||q))}" target="_blank" rel="noopener">在 Google 地圖開啟</a>`}
@@ -1298,15 +1435,15 @@ function renderExplore(){
   const days=sortedDays();
   if((!ui.exDay||!days.some(d=>d.id===ui.exDay))&&days[0])ui.exDay=days[0].id;
   if(!$('#exG')){
-    box.innerHTML=secHead('explore','看透透','依行程日期分類的 Google 地圖：點日期看當天的路線，點地點可定位到它')+`<div id="exTabs"></div><div class="exbox"><div class="excol"><div id="exG" role="region" aria-label="Google 地圖"></div><div id="exInfo" class="exinfo" hidden></div><p class="sec-sub" id="exStat" role="status"></p></div><div id="exList"></div></div>`;
-    exGSrc='';
+    box.innerHTML=secHead('explore','看透透','依行程日期分類的地圖：點日期看當天所有地點的標誌，點清單裡的地點可跳到它')+`<div id="exTabs"></div><div class="exbox"><div class="excol"><div id="exG" role="region" aria-label="Google 地圖"></div><div id="exInfo" class="exinfo" hidden></div><p class="sec-sub" id="exStat" role="status"></p></div><div id="exList"></div></div>`;
+    exGSrc='';exSig='';exMapObj=null;exMk={};
   }
   const tb=$('#exTabs'),old=tb.querySelector('.daytabs'),sl=old?old.scrollLeft:0;
   const dt=(k,a,b,c)=>`<button type="button" class="dt" role="tab" aria-selected="${ui.exDay===k}" data-act="extab" data-id="${k}"><small>${a}</small><b>${b}</b><small>${c||'&nbsp;'}</small></button>`;
   tb.innerHTML=`<div class="daytabs" role="tablist" aria-label="依日期篩選地圖">${days.map((d,i)=>dt(d.id,'Day '+(i+1),md(d.date),wk(d.date))).join('')}</div>`;
   tb.querySelector('.daytabs').scrollLeft=sl;
   exList(exPoints());
-  exGoogle();
+  exGoogle().catch(()=>{});
 }
 /* 電腦版：兩欄排版時，落單的那一欄自動撐滿整排，避免半邊空白 */
 function fixGrid(){
@@ -1502,7 +1639,7 @@ document.addEventListener('click',e=>{
     case 'logout':logout();break;
     case 'tday':ui.tday=id;renderTransit();break;
     case 'extab':ui.exDay=id;renderExplore();break;
-    case 'ex-route':exGoogle();break;
+    case 'ex-route':if(exMode==='map'&&exMapObj){exFit()}else exGoogle().catch(()=>{});break;
     case 'ex-focus':document.getElementById('exG').scrollIntoView({block:'center',behavior:reduced()?'auto':'smooth'});exGooglePlace(t.dataset.key);break;
     case 'ttab':ui.todoDay=id;renderList('todo');break;
     case 'edit-leg':{const d=find(S.days,t.dataset.day),x=d&&find(d.items,id);if(!x)break;openForm({title:'編輯交通方式',fields:[{key:'tr',label:'交通方式',type:'select',options:TRS},{key:'trNote',label:'搭乘方式備註',type:'textarea',ph:'例如：JR 山手線往新宿，搭 3 站；月台 2 號'}],values:x,onSave:v=>mutate(()=>Object.assign(x,v))});break}
