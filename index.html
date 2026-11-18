@@ -447,6 +447,7 @@ main{gap:1.8rem}
 .group h3,.group:nth-of-type(n) h3{background:var(--blue)}
 .ov-list li,.ov-list li:nth-child(n){background:var(--mint)}
 .cd-t,.cd-t:nth-child(n){background:var(--yellow)}
+.sgrp{font-weight:400;font-size:.85rem;color:var(--ink-soft);margin:.6rem .2rem .1rem}
 </style>
 
 
@@ -582,10 +583,10 @@ function normalize(o){
     hotels:fix(arr('hotels')),todos:fix(arr('todos')),todoCats:Array.isArray(o.todoCats)?o.todoCats.slice():[...new Set(arr('todos').map(i=>i.cat||'未分類'))],prep:fix(arr('prep')),pack:fix(arr('pack')),notes:fix(arr('notes'))};
 }
 function normRoot(o){
-  if(o&&Array.isArray(o.trips)){const ts=o.trips.map(t=>({id:t.id||uid(),name:t.name||'旅程',country:t.country||'其他',data:normalize(t.data)})).filter(t=>t.data);return ts.length?{trips:ts}:null}
-  const d=normalize(o);return d?{trips:[{id:'t1',name:(d.trip.title||'我的旅行').slice(0,10),country:'日本',data:d}]}:null;
+  if(o&&Array.isArray(o.trips)){const ts=o.trips.map(t=>({id:t.id||uid(),name:t.name||'旅程',country:t.country||'其他',scope:(t.scope==='domestic'||(!t.scope&&t.country==='台灣'))?'domestic':'abroad',data:normalize(t.data)})).filter(t=>t.data);return ts.length?{trips:ts}:null}
+  const d=normalize(o);return d?{trips:[{id:'t1',name:(d.trip.title||'我的旅行').slice(0,10),country:'日本',scope:'abroad',data:d}]}:null;
 }
-const mkRoot=()=>({trips:[{id:'t1',name:'東京・京都',country:'日本',data:normalize(sample())}]});
+const mkRoot=()=>({trips:[{id:'t1',name:'東京・京都',country:'日本',scope:'abroad',data:normalize(sample())}]});
 function load(){try{const r=localStorage.getItem(KEY);if(r){const n=normRoot(JSON.parse(r));if(n)return n}}catch(e){}return mkRoot()}
 const curTrip=()=>ROOT.trips.find(t=>t.id===ui.trip)||ROOT.trips[0];
 function setAct(id){ui.trip=id;try{localStorage.setItem('tabi-techo-act',id)}catch(e){}}
@@ -865,7 +866,7 @@ function renderHero(){
     <h1>${esc(t.title||'我的旅行')}</h1>
     ${t.tagline?`<p class="tagline">${esc(t.tagline)}</p>`:''}
     <div class="cd-label" id="cdl">出發倒數</div><div class="cd" id="cd" role="timer" aria-live="off"></div>
-    <div id="clock"></div>
+    ${isDom()?'':'<div id="clock"></div>'}
     <button type="button" class="btn sm edit-only" style="align-self:flex-start" data-act="edit-trip">✎ 修改標題與日期</button>
     <div class="edit-only" style="display:flex;gap:.5rem;flex-wrap:wrap"><button type="button" class="btn sm" data-act="cover">🎨 更換封面</button><button type="button" class="btn sm danger" data-act="del-trip">🗑 刪除此旅程</button></div>
   </div></div>`;
@@ -1128,24 +1129,28 @@ const CT={
   新加坡:{e:'🇸🇬',st:'night',ap:['SIN','新加坡樟宜'],prep:['填寫 SG Arrival Card','預約熱門景點門票'],pack:[['電子用品','英規三孔轉接頭'],['衣物','輕薄衣物與外套（冷氣強）']],todo:[['吃','海南雞飯、小販中心'],['買','伴手禮'],['拍照','濱海灣花園']]},
   歐洲:{e:'🇪🇺',st:'balloon',ap:['CDG','巴黎戴高樂'],prep:['確認申根簽證／ETIAS 規定','規劃跨國交通（火車、廉航）','留意扒手並保管財物'],pack:[['電子用品','歐規轉接頭'],['證件錢包','歐元現金與可國外刷卡的信用卡'],['衣物','好走的鞋']],todo:[['吃','當地特色餐廳'],['買','伴手禮'],['拍照','地標與老城區']]},
   美國:{e:'🇺🇸',st:'balloon',ap:['LAX','洛杉磯'],prep:['申請 ESTA／簽證','確認入境規定','準備小費預算'],pack:[['電子用品','美規轉接頭'],['證件錢包','國際駕照（租車用）']],todo:[['吃','漢堡、在地美食'],['買','Outlet 採買'],['拍照','經典地標']]},
+  台灣:{e:'🇹🇼',st:'sakura',ap:['',''],prep:['預訂住宿與交通（高鐵、台鐵、租車）','查詢天氣與穿著','確認景點營業時間與預約'],pack:[['衣物','輕便外套或雨具'],['其他','環保購物袋']],todo:[['吃','在地小吃'],['買','伴手禮'],['拍照','必拍景點']]},
   其他:{e:'✈️',st:'beach',ap:['',''],prep:[],pack:[],todo:[]}
 };
-function tplData(c,title,dep,back){
+const ctAbroad=()=>Object.keys(CT).filter(k=>k!=='台灣');
+const SCOPES=['國外旅程','國內旅程'];
+function tplData(c,title,dep,back,dom){
   const T=CT[c]||CT.其他,li=t=>({id:uid(),text:t,done:false}),pk=(g,t)=>({id:uid(),cat:g,text:t,done:false});
   const d0=parseD(dep),d1=parseD(back),n=d0&&d1?Math.min(14,Math.max(1,Math.round((d1-d0)/864e5)+1)):0;
   const days=[...Array(n)].map((_,i)=>{const d=new Date(d0);d.setDate(d.getDate()+i);const last=i===n-1&&n>1;
+    if(dom)return {id:uid(),date:ymd(d),title:i===0?'出發':last?'返程':'自由安排',items:[]};
     return {id:uid(),date:ymd(d),title:i===0?'抵達'+(T.ap[1]?'・'+T.ap[1].replace(/機場|國際/g,''):''):last?'返程':'自由安排',items:i===0?[{id:uid(),time:'',title:'抵達'+(T.ap[1]||'目的地'),tr:'飛機',note:'',must:false}]:last?[{id:uid(),time:'',title:'前往機場，搭機返台',tr:'飛機',note:'',must:false}]:[]}});
-  const fl=T.ap[0]&&dep?[{id:uid(),dir:'去程',airline:'',no:'',fromCode:'TPE',fromCity:'台北桃園',toCode:T.ap[0],toCity:T.ap[1],date:dep,dep:'',arrDate:dep,arr:'',note:''},...(back?[{id:uid(),dir:'回程',airline:'',no:'',fromCode:T.ap[0],fromCity:T.ap[1],toCode:'TPE',toCity:'台北桃園',date:back,dep:'',arrDate:back,arr:'',note:''}]:[])]:[];
+  const fl=!dom&&T.ap[0]&&dep?[{id:uid(),dir:'去程',airline:'',no:'',fromCode:'TPE',fromCity:'台北桃園',toCode:T.ap[0],toCity:T.ap[1],date:dep,dep:'',arrDate:dep,arr:'',note:''},...(back?[{id:uid(),dir:'回程',airline:'',no:'',fromCode:T.ap[0],fromCity:T.ap[1],toCode:'TPE',toCity:'台北桃園',date:back,dep:'',arrDate:back,arr:'',note:''}]:[])]:[];
   return normalize({trip:{title,tagline:'',depart:dep?dep+'T09:00':'',back:back||''},cover:{mode:'scene',style:T.st,seed:1+Math.floor(Math.random()*1e6)},flights:fl,days,hotels:[],
-    todoCats:[...new Set(T.todo.map(x=>x[0]))],todos:T.todo.map(x=>pk(...x)),prep:[...BP,...T.prep].map(li),pack:[...BK,...T.pack].map(x=>pk(...x)),notes:BN.map(x=>pk(...x))});
+    todoCats:[...new Set(T.todo.map(x=>x[0]))],todos:T.todo.map(x=>pk(...x)),prep:(dom?T.prep:[...BP,...T.prep]).map(li),pack:(dom?BK.filter(x=>!/護照|機票|外幣|轉接/.test(x[1])):BK).concat(T.pack).map(x=>pk(...x)),notes:(dom?BN.filter(x=>!/護照|機票/.test(x[1])):BN).map(x=>pk(...x))});
 }
 function renderTrips(){
   const cur=curTrip().id;
   const row=t=>{
-    if(ui.renaming===t.id)return `<form class="strename" data-id="${t.id}"><input name="name" value="${esc(t.name)}" maxlength="40" aria-label="分頁名稱" placeholder="分頁名稱"><select name="country" aria-label="國家">${Object.keys(CT).map(k=>`<option${k===t.country?' selected':''}>${esc(k)}</option>`).join('')}</select><div class="strow2"><button type="button" class="btn sm" data-act="rename-cancel">取消</button><button type="submit" class="btn sm primary">儲存</button></div></form>`;
-    return `<div class="strow"><button type="button" class="st" role="tab" aria-selected="${t.id===cur}" data-act="trip" data-id="${t.id}"><span class="e">${(CT[t.country]||CT.其他).e}</span><span><b>${esc(t.name)}</b><small>${esc(t.country)}</small></span></button><span class="eb edit-only"><button type="button" class="mini" data-act="rename-trip" data-id="${t.id}" aria-label="編輯分頁名稱：${esc(t.name)}">✎</button></span></div>`;
+    if(ui.renaming===t.id)return `<form class="strename" data-id="${t.id}"><input name="name" value="${esc(t.name)}" maxlength="40" aria-label="分頁名稱" placeholder="分頁名稱"><select name="scope" aria-label="旅程類型">${SCOPES.map((k,i)=>`<option${(i===1)===isDom(t)?' selected':''}>${k}</option>`).join('')}</select><select name="country" aria-label="國家（國外旅程）">${ctAbroad().map(k=>`<option${k===t.country?' selected':''}>${esc(k)}</option>`).join('')}</select><div class="strow2"><button type="button" class="btn sm" data-act="rename-cancel">取消</button><button type="submit" class="btn sm primary">儲存</button></div></form>`;
+    return `<div class="strow"><button type="button" class="st" role="tab" aria-selected="${t.id===cur}" data-act="trip" data-id="${t.id}"><span class="e">${(CT[t.country]||CT.其他).e}</span><span><b>${esc(t.name)}</b><small>${isDom(t)?'國內':esc(t.country)}</small></span></button><span class="eb edit-only"><button type="button" class="mini" data-act="rename-trip" data-id="${t.id}" aria-label="編輯分頁名稱：${esc(t.name)}">✎</button></span></div>`;
   };
-  $('#side').innerHTML=`<div class="side-h"><h2>🧳 我的旅程</h2><button type="button" class="mini side-close" data-act="side-close" aria-label="收合旅程選單"><span class="ic-m">✕</span><span class="ic-d">‹</span></button></div>${ROOT.trips.map(row).join('')}<button type="button" class="add" data-act="add-trip">＋ 新增旅程</button>`;
+  $('#side').innerHTML=`<div class="side-h"><h2>🧳 我的旅程</h2><button type="button" class="mini side-close" data-act="side-close" aria-label="收合旅程選單"><span class="ic-m">✕</span><span class="ic-d">‹</span></button></div>${[['國外旅程',ROOT.trips.filter(x=>!isDom(x))],['國內旅程',ROOT.trips.filter(x=>isDom(x))]].filter(g=>g[1].length).map(g=>`<h3 class="sgrp">${g[0]}</h3>${g[1].map(row).join('')}`).join('')}<button type="button" class="add" data-act="add-trip">＋ 新增旅程</button>`;
   const ri=$('#side .strename input');if(ri&&!ri.dataset.f){ri.dataset.f=1;ri.focus();ri.select()}
 }
 document.addEventListener('submit',e=>{
@@ -1155,7 +1160,7 @@ document.addEventListener('submit',e=>{
   if(!name){toast('請填寫分頁名稱');f.elements.name.focus();return}
   const t=ROOT.trips.find(x=>x.id===f.dataset.id);ui.renaming=null;
   if(!t){renderTrips();return}
-  mutate(()=>{t.name=name;t.country=f.elements.country.value},'已更新分頁名稱');
+  mutate(()=>{t.name=name;const dom=f.elements.scope.value===SCOPES[1];t.scope=dom?'domestic':'abroad';t.country=dom?'台灣':f.elements.country.value},'已更新分頁名稱');
 });
 $('#side').addEventListener('keydown',e=>{if(e.key==='Escape'&&ui.renaming){e.stopPropagation();ui.renaming=null;renderTrips()}});
 const DESK=matchMedia('(min-width:1024px)');
@@ -1163,9 +1168,9 @@ try{if(localStorage.getItem('sidecol')==='1')document.body.classList.add('sideco
 function setSideCol(on){document.body.classList.toggle('sidecol',on);try{localStorage.setItem('sidecol',on?'1':'0')}catch(e){}}
 function switchTrip(id){document.body.classList.remove('sideopen');setAct(id);S=curTrip().data;ui.day=ui.tday=null;renderAll();scrollTo({top:0})}
 function addTrip(){
-  const cs=Object.keys(CT);
-  openForm({title:'新增旅程',fields:[{key:'name',label:'分頁名稱',req:true,ph:'例如：首爾 4 天'},{key:'country',label:'國家（會套用對應範本）',type:'select',options:cs},{key:'dep',label:'出發日期',type:'date',half:true},{key:'back',label:'回程日期',type:'date',half:true}],values:{country:'日本'},
-    onSave:v=>mutate(()=>{const t={id:uid(),name:v.name,country:v.country,data:tplData(v.country,v.name,v.dep,v.back)};ROOT.trips.push(t);setAct(t.id);S=t.data;ui.day=ui.tday=null;scrollTo({top:0})},'已新增旅程，已套用'+'範本')});
+  const cs=ctAbroad();
+  openForm({title:'新增旅程',fields:[{key:'name',label:'分頁名稱',req:true,ph:'例如：首爾 4 天'},{key:'scope',label:'旅程類型（國內旅程不會有航班）',type:'select',options:SCOPES},{key:'country',label:'國家（僅國外旅程；會套用對應範本）',type:'select',options:cs},{key:'dep',label:'出發日期',type:'date',half:true},{key:'back',label:'回程日期',type:'date',half:true}],values:{country:'日本',scope:'國外旅程'},
+    onSave:v=>mutate(()=>{const dom=v.scope==='國內旅程',c=dom?'台灣':v.country;const t={id:uid(),name:v.name,country:c,scope:dom?'domestic':'abroad',data:tplData(c,v.name,v.dep,v.back,dom)};ROOT.trips.push(t);setAct(t.id);S=t.data;ui.day=ui.tday=null;scrollTo({top:0})},'已新增旅程，已套用'+'範本')});
 }
 function delTrip(){
   if(ROOT.trips.length<2){toast('至少要保留一趟旅程');return}
@@ -1174,18 +1179,20 @@ function delTrip(){
 }
 /* ---------- 看透透：依日期分類，用 Google 地圖 iframe 嵌入當天路線（地名交給 Google 解析，不需要 API 金鑰） ---------- */
 const EX_PAL=['#FFB7AE','#B8DFF5','#BFE8C0','#DCCDF7','#FFD2AE','#FFC8DE','#BEEBDD','#FFE59A'];
-const EX_CC={日本:'jp',韓國:'kr',泰國:'th',越南:'vn',新加坡:'sg',美國:'us'};
+const EX_CC={台灣:'tw',日本:'jp',韓國:'kr',泰國:'th',越南:'vn',新加坡:'sg',美國:'us'};
 const COORD=/^(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)$/;
 let exGSrc='',exLast=[];
 const exCC=()=>EX_CC[(curTrip()||{}).country]||'';
+const isDom=t=>{t=t||curTrip();return !!t&&(t.scope==='domestic'||(!t.scope&&t.country==='台灣'))};
 const EX_PRE=/^(抵達|到達|抵|前往|出發|搭乘|搭|乘|入住|退房|參觀|遊覽|逛|吃|品嚐|午餐|晚餐|早餐|宵夜|下午茶|在|於)\s*/;
 const EX_SUF=/\s*(入住|退房|寄放行李|放行李|取行李|散步|周邊|附近|逛街|用餐|拍照|出發|集合|返台|返回|回台灣)$/;
 function exClean(t){let o=String(t).trim();for(let k=0;k<3;k++){const n=o.replace(EX_PRE,'').replace(EX_SUF,'').trim();if(n===o)break;o=n}return o}
 /* 行程標題常是「動作＋地點」，不是可以直接查的地名，所以拆出幾個可能的地名依序去查 */
 function exCands(p){
-  const out=[],add=q=>{q=String(q||'').replace(/\s+/g,' ').trim();if(q.length>=2&&q.length<=60&&!out.includes(q))out.push(q)};
+  const out=[],add=(q,force)=>{q=String(q||'').replace(/\s+/g,' ').trim();if(q.length>=2&&(force||q.length<=60)&&!out.includes(q))out.push(q)};
   const x=p.x,raw=String(x.addr||'').trim();
-  if(raw){const u=asUrl(raw);if(u){const c=urlPlace(u);if(c&&!COORD.test(c))add(c)}else add(raw)}
+  /* 行程地點有填「地址/網址」就以它為準（放在第一順位，不套用長度限制）；沒填才用名稱推測 */
+  if(raw){const u=asUrl(raw);if(u){const c=urlPlace(u);if(c&&!COORD.test(c))add(c,true)}else add(raw,true)}
   const t=String(p.title||'').trim();
   if(p.kind==='hotel'){add(t);return out.slice(0,4)}
   if(/入住|退房|旅宿|飯店|民宿|旅館/.test(t)){
@@ -1315,7 +1322,7 @@ function fixGrid(){
   });
   flush();
 }
-function renderAll(){renderTrips();renderHero();renderFlights();renderDays(false);renderTransit();renderExplore();renderHotels();['todo','prep','pack','notes'].forEach(renderList);renderFoot();fixGrid();}
+function renderAll(){renderTrips();renderHero();renderFlights();renderDays(false);renderTransit();renderExplore();renderHotels();['todo','prep','pack','notes'].forEach(renderList);renderFoot();try{renderNav();applyOrder()}catch(e){}fixGrid();}
 
 /* ---------- 彈出視窗 ---------- */
 let lastFocus=null,sheetActs={},sheetLock=false;
@@ -1604,17 +1611,18 @@ const navPref={pos:'top',hide:false,fx:null,fy:.4};
 try{Object.assign(navPref,JSON.parse(localStorage.getItem(NK)||'{}'))}catch(e){}
 const NAVS={flights:'航班',days:'行程',transit:'交通',explore:'看透透',todo:'待辦',hotels:'住宿',prep:'出發前',pack:'行李',notes:'注意事項'};
 const NAV_DEF=Object.keys(NAVS);
+const navOff=k=>navPref.hidden.includes(k)||(k==='flights'&&isDom());
 navPref.order=(Array.isArray(navPref.order)?navPref.order:[]).filter(k=>NAVS[k]);
 NAV_DEF.forEach(k=>{if(!navPref.order.includes(k))navPref.order.push(k)});
 navPref.hidden=(Array.isArray(navPref.hidden)?navPref.hidden:[]).filter(k=>NAVS[k]);
 function renderNav(){
-  $('#nav').innerHTML='<a href="#top" data-nav="top">首頁</a>'+navPref.order.filter(k=>!navPref.hidden.includes(k)).map(k=>`<a href="#${k}" data-nav="${k}">${NAVS[k]}</a>`).join('');
+  $('#nav').innerHTML='<a href="#top" data-nav="top">首頁</a>'+navPref.order.filter(k=>!navOff(k)).map(k=>`<a href="#${k}" data-nav="${k}">${NAVS[k]}</a>`).join('');
 }
-function applyOrder(){const main=$('main'),foot=$('#foot');navPref.order.forEach(k=>{const el=document.getElementById(k);if(el){main.insertBefore(el,foot);el.hidden=navPref.hidden.includes(k)}})}
+function applyOrder(){const main=$('main'),foot=$('#foot');navPref.order.forEach(k=>{const el=document.getElementById(k);if(el){main.insertBefore(el,foot);el.hidden=navOff(k)}})}
 function refreshNav(){renderNav();applyOrder();fixGrid();applyNav();spyId='';spy()}
 function openNavMenu(){
   const n=navPref.order.length;
-  const rows=navPref.order.map((k,i)=>{const h=navPref.hidden.includes(k);return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><button type="button" class="mini eyeb${h?'':' on'}" data-sheet="tg" data-k="${k}" aria-label="${h?'已隱藏，點一下顯示':'顯示中，點一下隱藏'}" title="${h?'已隱藏':'顯示中'}">${h?SVG.eyeClosed:SVG.eyeOpen}</button><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
+  const rows=navPref.order.map((k,i)=>{if(k==='flights'&&isDom())return '';const h=navPref.hidden.includes(k);return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><button type="button" class="mini eyeb${h?'':' on'}" data-sheet="tg" data-k="${k}" aria-label="${h?'已隱藏，點一下顯示':'顯示中，點一下隱藏'}" title="${h?'已隱藏':'顯示中'}">${h?SVG.eyeClosed:SVG.eyeOpen}</button><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
   const redo=()=>{refreshNav();openNavMenu()};
   const move=(b,d)=>{const k=b.dataset.k,i=navPref.order.indexOf(k),j=i+d;if(j<0||j>=n)return;navPref.order.splice(i,1);navPref.order.splice(j,0,k);redo()};
   openSheet(`<h3 id="sheet-t">選單設定</h3><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem"><button type="button" class="btn sm" data-sheet="pos">選單移到${navPref.pos==='bottom'?'上方':'下方'}</button><button type="button" class="btn sm" data-sheet="hide" aria-label="隱藏整個選單"><span class="eyeb">${SVG.eyeClosed}<span>整個選單</span></span></button></div><p class="mut">用 ↑↓ 調整順序（頁面內容也會跟著換位置），按眼睛圖示可以顯示（睜眼）或隱藏（閉眼）該項目，頁面內容也會一起顯示或隱藏。設定只存在這台裝置。</p><ul class="rows orglist">${rows}</ul><div class="sheet-btns" style="margin-top:.8rem"><button type="button" class="btn" data-sheet="reset">還原預設</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
@@ -1655,7 +1663,7 @@ fab.addEventListener('pointerup',()=>{
 fab.addEventListener('pointercancel',()=>{drag=null});
 fab.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();navPref.hide=false;applyNav()}});
 applyNav();
-const secIds=()=>['top',...navPref.order.filter(k=>!navPref.hidden.includes(k))];let spyId='',raf=0;
+const secIds=()=>['top',...navPref.order.filter(k=>!navOff(k))];let spyId='',raf=0;
 function spy(){
   let cur='top';for(const id of secIds()){if(document.getElementById(id).getBoundingClientRect().top<=130)cur=id}
   if(cur===spyId)return;spyId=cur;
