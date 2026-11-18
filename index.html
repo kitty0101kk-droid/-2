@@ -1060,11 +1060,11 @@ function renderList(id){
   if(isTodo&&ui.todoDay&&ui.todoDay!=='all'&&ui.todoDay!=='none'&&!dys.some(d=>d.id===ui.todoDay))ui.todoDay='all';
   if(isTodo&&!ui.todoDay)ui.todoDay='all';
   const hasNone=all.some(i=>!i.day||!dys.some(d=>d.id===i.day));
-  if(isTodo&&ui.todoDay==='none'&&!hasNone)ui.todoDay='all';
+  if(isTodo&&ui.todoDay==='none')ui.todoDay='all';
   const items=!isTodo||ui.todoDay==='all'?all:all.filter(i=>ui.todoDay==='none'?(!i.day||!dys.some(d=>d.id===i.day)):i.day===ui.todoDay);
   const done=items.filter(i=>isOn(id,i)).length,pct=items.length?Math.round(done/items.length*100):0;
   const dtab=(k,sm,b,ft)=>`<button type="button" class="dt" role="tab" aria-selected="${ui.todoDay===k}" data-act="ttab" data-id="${k}"><small>${sm}</small><b>${b}</b><small>${ft||'&nbsp;'}</small></button>`;
-  const ttabs=isTodo?`<div class="daytabs" role="tablist" aria-label="依天數篩選">${dtab('all','ALL','全部','')}${dys.map((d,k)=>dtab(d.id,'Day '+(k+1),md(d.date),wk(d.date))).join('')}${hasNone&&dys.length?dtab('none','未分','未分天',''):''}</div>`:'';
+  const ttabs=isTodo?`<div class="daytabs" role="tablist" aria-label="依天數篩選">${dtab('all','ALL','全部','')}${dys.map((d,k)=>dtab(d.id,'Day '+(k+1),md(d.date),wk(d.date))).join('')}</div>`:'';
   const dayUi=isTodo?`<select name="day" class="daysel" aria-label="這是哪一天的待辦"><option value="">不分天</option>${dys.map((d,k)=>`<option value="${d.id}"${ui.todoDay===d.id?' selected':''}>${dayName(k)}</option>`).join('')}</select>`:'';
   const row=i=>`<li class="${isOn(id,i)?'done':''}${phSel===i.id?' sel':''}" data-item="${i.id}" data-list="${id}"><label class="chk"><input type="checkbox" data-list="${id}" data-id="${i.id}" ${isOn(id,i)?'checked':''}><span class="box" data-box="${i.id}">${SVG.check}</span><span class="txt">${esc(i.text)}</span>${isTodo&&ui.todoDay==='all'&&dayOf(i.day)?`<span class="mk">${dayName(dayOf(i.day).i)}</span>`:''}${tagHtml(id,i)}</label><span class="eb edit-only"><button type="button" class="mini" data-act="edit-li" data-list="${id}" data-id="${i.id}" aria-label="編輯">✎</button><button type="button" class="mini x" data-act="del-li" data-list="${id}" data-id="${i.id}" aria-label="刪除">✕</button></span>${phStrip(id,i)}</li>`;
   let body;
