@@ -572,6 +572,16 @@ body.navb #homeView,body.navb #lgView{padding-bottom:calc(6rem + env(safe-area-i
 .tc-main .dill{width:68px;height:68px}
 .tc-main .dill svg{width:56px;height:56px;--sw:2.3}
 .ph-file .bi.ill,.ph-add .bi.ill{width:1.1em;height:1.1em}
+
+/* 成員頭像照片 */
+.av{overflow:hidden}
+.av img{width:100%;height:100%;object-fit:cover;display:block}
+.avform{grid-column:1/-1;min-width:0;margin-top:.9rem;display:flex;align-items:center;gap:.8rem;margin-bottom:.8rem;flex-wrap:nowrap}
+.avpv{flex:none;width:64px;height:64px;border-radius:50%;border:2px solid var(--ink);background:var(--yellow);display:grid;place-items:center;font-size:1.5rem;overflow:hidden}
+.avpv img{width:100%;height:100%;object-fit:cover;display:block}
+.avbtns{display:flex;flex-direction:column;align-items:flex-start;gap:.4rem}
+.strow .lgbtn{flex:none;display:grid;place-items:center;width:38px;height:38px;padding:0}
+.lgbtn .bi.ill{margin:0;width:22px;height:22px}
 </style>
 
 
@@ -1312,7 +1322,7 @@ function renderTrips(){
   const cur=curTrip().id;
   const row=t=>{
     if(ui.renaming===t.id)return `<form class="strename" data-id="${t.id}"><input name="name" value="${esc(t.name)}" maxlength="40" aria-label="分頁名稱" placeholder="分頁名稱"><select name="scope" aria-label="旅程類型">${SCOPES.map((k,i)=>`<option${(i===1)===isDom(t)?' selected':''}>${k}</option>`).join('')}</select><select name="country" aria-label="國家（國外旅程）"${isDom(t)?' style="display:none"':''}>${ctAbroad().map(k=>`<option${k===t.country?' selected':''}>${esc(k)}</option>`).join('')}</select><select name="region" aria-label="縣市（國內旅程）"${isDom(t)?'':' style="display:none"'}>${TW_REGIONS.map(k=>`<option${k===(t.region||REGION_NONE)?' selected':''}>${esc(k)}</option>`).join('')}</select><div class="strow2"><button type="button" class="btn sm" data-act="rename-cancel">取消</button><button type="submit" class="btn sm primary">儲存</button></div></form>`;
-    return `<div class="strow"><button type="button" class="st" role="tab" aria-selected="${t.id===cur}" data-act="trip" data-id="${t.id}">${destIll(t.country)}<span><b>${esc(t.name)}</b><small>${isDom(t)?'國內'+(t.region?'・'+esc(t.region):''):esc(t.country)}</small></span></button><span class="eb edit-only"><button type="button" class="mini" data-act="rename-trip" data-id="${t.id}" aria-label="編輯分頁名稱：${esc(t.name)}">✎</button></span></div>`;
+    return `<div class="strow"><button type="button" class="st" role="tab" aria-selected="${t.id===cur}" data-act="trip" data-id="${t.id}">${destIll(t.country)}<span><b>${esc(t.name)}</b><small>${isDom(t)?'國內'+(t.region?'・'+esc(t.region):''):esc(t.country)}</small></span></button>${t.data.ledger?`<button type="button" class="mini lgbtn" data-act="open-ledger" data-id="${t.id}" aria-label="記帳／分帳：${esc(t.name)}" title="記帳／分帳">${SVG.ui.coin}</button>`:''}<span class="eb edit-only"><button type="button" class="mini" data-act="rename-trip" data-id="${t.id}" aria-label="編輯分頁名稱：${esc(t.name)}">✎</button></span></div>`;
   };
   $('#side').innerHTML=`<div class="side-h"><h2><span class="hi">${SVG.ico.pack}</span>我的旅程</h2><button type="button" class="mini side-close" data-act="side-close" aria-label="收合旅程選單"><span class="ic-m">✕</span><span class="ic-d">‹</span></button></div>${[['國外旅程',ROOT.trips.filter(x=>!isDom(x))],['國內旅程',ROOT.trips.filter(x=>isDom(x))]].filter(g=>g[1].length).map(g=>`<h3 class="sgrp">${g[0]}</h3>${g[1].map(row).join('')}`).join('')}<button type="button" class="add" data-act="add-trip">＋ 新增旅程</button>`;
   const ri=$('#side .strename input');if(ri&&!ri.dataset.f){ri.dataset.f=1;ri.focus();ri.select()}
@@ -1643,7 +1653,7 @@ function renderLedger(){
   const f=n=>money(n)+cur;
   const c=ledgerCalc();
   const PAL=['#FFB7AE','#B8DFF5','#BFE8C0','#DCCDF7','#FFD2AE','#FFC8DE','#BEEBDD','#FFE59A'];
-  const av=(id,name)=>{const k=Math.max(0,g.members.findIndex(m=>m.id===id));return `<span class="av" style="background:${PAL[k%PAL.length]}" aria-hidden="true">${esc(String(name||'?').trim().slice(0,1)||'?')}</span>`};
+  const av=(id,name)=>{const k=Math.max(0,g.members.findIndex(m=>m.id===id)),mm=g.members[k];return `<span class="av" style="background:${PAL[k%PAL.length]}" aria-hidden="true">${mm&&mm.id===id&&mm.photo?`<img src="${mm.photo}" alt="">`:esc(String(name||'?').trim().slice(0,1)||'?')}</span>`};
   const sum=`<div class="lgc sum"><div class="lgc-h"><h3><span class="hi">${SVG.ico.ledger}</span>總支出</h3><span class="edit-only"><button type="button" class="btn sm" data-act="lg-cur">✎ 幣別${g.cur?'：'+esc(g.cur):''}</button></span></div>
     <div class="big">${f(c.total)}</div>
     <div class="stats"><span class="chip">${g.members.length} 位成員</span><span class="chip">${g.items.length} 筆支出</span>${g.members.length&&g.items.length?`<span class="chip">每人平均 ${f(c.total/g.members.length)}</span>`:''}</div></div>`;
@@ -1680,17 +1690,35 @@ function ledgerExpForm(it){
     },
     onDelete:it?()=>mutate(()=>{g.items.splice(g.items.indexOf(it),1)},'已刪除支出',true):null});
 }
+async function avatarImg(file){
+  const im=await loadImg(file),n=192,c=document.createElement('canvas');c.width=c.height=n;
+  const side=Math.min(im.naturalWidth,im.naturalHeight),sx=(im.naturalWidth-side)/2,sy=(im.naturalHeight-side)/2;
+  c.getContext('2d').drawImage(im,sx,sy,side,side,0,0,n,n);
+  return c.toDataURL('image/jpeg',.82);
+}
 function ledgerMemForm(m){
-  const g=S.ledger;
+  const g=S.ledger;let photo=(m&&m.photo)||'';
   openForm({title:m?'編輯成員':'新增成員',fields:[{key:'name',label:'名字',req:true,ph:'例如：小明'}],values:{name:m?m.name:''},
     onSave:v=>{
       let n=v.name;if(g.members.some(x=>x!==m&&x.name===n)){let k=2;while(g.members.some(x=>x!==m&&x.name===n+k))k++;n+=k;toast('名字重複，已改成「'+n+'」')}
-      mutate(()=>{if(m)m.name=n;else g.members.push({id:uid(),name:n})});
+      mutate(()=>{if(m){m.name=n;if(photo)m.photo=photo;else delete m.photo}else{const o={id:uid(),name:n};if(photo)o.photo=photo;g.members.push(o)}});
     },
     onDelete:m?()=>{
       if(g.items.some(i=>i.payer===m.id)){toast('這位成員有付款紀錄，請先修改或刪除那些支出');return}
       mutate(()=>{g.members.splice(g.members.indexOf(m),1);g.items.forEach(i=>{i.split=(i.split||[]).filter(id=>id!==m.id)})},'已刪除成員',true);
     }:null});
+  const f=$('#sf');if(!f)return;
+  const box=document.createElement('div');box.className='avform';
+  box.innerHTML=`<span class="avpv" aria-hidden="true"></span><div class="avbtns"><button type="button" class="btn sm" data-av="up">${SVG.ui.image}上傳頭像照片</button><button type="button" class="btn sm" data-av="rm">移除照片</button></div><input type="file" accept="image/*" hidden aria-label="選擇頭像照片">`;
+  f.insertBefore(box,f.firstChild);
+  const top=()=>{const sh=$('#sheet');if(sh)sh.scrollTop=0};top();setTimeout(top,80);
+  const pv=box.querySelector('.avpv'),inp=box.querySelector('input'),rm=box.querySelector('[data-av=rm]');
+  const draw=()=>{const t=(f.elements.name.value||'?').trim().slice(0,1)||'?';pv.innerHTML=photo?`<img src="${photo}" alt="">`:esc(t);rm.hidden=!photo};
+  draw();f.elements.name.addEventListener('input',draw);
+  box.querySelector('[data-av=up]').addEventListener('click',()=>inp.click());
+  rm.addEventListener('click',()=>{photo='';draw()});
+  inp.addEventListener('change',async()=>{const file=inp.files[0];inp.value='';if(!file)return;
+    try{photo=await avatarImg(file);draw()}catch(e){toast('照片處理失敗，請換一張圖片再試')}});
 }
 function renderHome(){
   const box=$('#homeView');if(!box)return;
@@ -2007,7 +2035,7 @@ const navPref={pos:'top',hide:false,fx:null,fy:.4};
 try{Object.assign(navPref,JSON.parse(localStorage.getItem(NK)||'{}'))}catch(e){}
 const NAVS={flights:'航班',days:'行程',transit:'交通',explore:'看透透',todo:'待辦',hotels:'住宿',prep:'出發前',pack:'行李',notes:'注意事項',ledger:'記帳'};
 const NAV_DEF=Object.keys(NAVS);
-const navOff=k=>(k!=='ledger'&&navPref.hidden.includes(k))||(k==='flights'&&isDom())||(k==='ledger'&&!(S&&S.ledger));
+const navOff=k=>(k!=='ledger'&&navPref.hidden.includes(k))||(k==='flights'&&isDom())||k==='ledger';
 navPref.order=(Array.isArray(navPref.order)?navPref.order:[]).filter(k=>NAVS[k]);
 NAV_DEF.forEach(k=>{if(!navPref.order.includes(k))navPref.order.push(k)});
 navPref.hidden=(Array.isArray(navPref.hidden)?navPref.hidden:[]).filter(k=>NAVS[k]);
@@ -2019,7 +2047,7 @@ function refreshNav(){renderNav();applyOrder();fixGrid();applyNav();spyId='';spy
 function lgOn(stay){mutate(()=>{if(!S.ledger)S.ledger={cur:LG_CUR[(curTrip()||{}).country]||'',members:[],items:[]};const i=navPref.hidden.indexOf('ledger');if(i>=0)navPref.hidden.splice(i,1);try{localStorage.setItem(NK,JSON.stringify(navPref))}catch(e){}},'已新增這個旅程的記帳／分帳分頁');refreshNav();if(!stay)setView('ledger')}
 function openNavMenu(){
   const n=navPref.order.length;
-  const rows=navPref.order.map((k,i)=>{if((k==='flights'&&isDom())||(k==='ledger'&&!S.ledger))return '';return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
+  const rows=navPref.order.map((k,i)=>{if((k==='flights'&&isDom())||k==='ledger')return '';return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
   const redo=()=>{refreshNav();openNavMenu()};
   const move=(b,d)=>{const k=b.dataset.k,i=navPref.order.indexOf(k),j=i+d;if(j<0||j>=n)return;navPref.order.splice(i,1);navPref.order.splice(j,0,k);redo()};
   openSheet(`<h3 id="sheet-t">選單設定</h3><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem"><button type="button" class="btn sm" data-sheet="pos">選單移到${navPref.pos==='bottom'?'上方':'下方'}</button><button type="button" class="btn sm" data-sheet="hide" aria-label="隱藏整個選單"><span class="eyeb">${SVG.eyeOpen}<span>整個選單</span></span></button></div><p class="mut">用 ↑↓ 調整順序（頁面內容也會跟著換位置）。想隱藏某個區塊，請按該區塊大標題旁的眼睛圖示。設定只存在這台裝置。</p><ul class="rows orglist">${rows}</ul><div class="sheet-btns" style="margin-top:.8rem"><button type="button" class="btn" data-sheet="reset">還原預設</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
