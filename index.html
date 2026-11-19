@@ -31,7 +31,8 @@ a{color:inherit}
 .wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .mut{color:var(--ink-soft)}
-body:not(.editing) .edit-only{display:none!important}
+body:not(.editing) .edit-only,body.editing .edit-only:not(.sec-on .edit-only){display:none!important}
+body:not(.editing) .edit-hint{display:none}
 
 .ill{display:block}
 .ill *{fill:none;stroke:var(--ink);stroke-width:var(--sw,3);stroke-linejoin:round;stroke-linecap:round}
@@ -611,10 +612,10 @@ body.navb #homeView,body.navb #lgView{padding-bottom:calc(6rem + env(safe-area-i
 </header>
 
 <div id="homeView" class="wrap" aria-label="我的旅程"></div>
-<div id="lgView" class="wrap"><div class="lg-bar"><button type="button" class="btn sm" data-act="go-trip">← 回到旅程</button><b id="lgTrip"></b><button type="button" class="btn sm edtog primary" aria-pressed="false">✎ 編輯</button></div><section id="ledger" class="sec"></section></div>
+<div id="lgView" class="wrap"><div class="lg-bar"><button type="button" class="btn sm" data-act="go-trip">← 回到旅程</button><b id="lgTrip"></b><button type="button" class="btn sm edtog primary" data-sec="lg" aria-pressed="false">✎ 編輯</button></div><section id="ledger" class="sec"></section></div>
 
 <main class="wrap">
-  <div class="hint edit-only" role="note">編輯中：點 ✎ 修改、＋ 新增，改完按標題旁的「完成」。刪除後可以按「復原」。修改會即時同步給其他人。</div>
+  <div class="hint edit-hint" role="note">編輯中（只能修改你按下「編輯」的這個區塊）：點 ✎ 修改、＋ 新增，改完按標題旁的「完成」。刪除後可以按「復原」。修改會即時同步給其他人。</div>
   <section id="top"></section>
   <section id="flights" class="sec"></section>
   <section id="days" class="sec"></section>
@@ -1030,8 +1031,8 @@ $('#covInput').addEventListener('change',async e=>{
   catch(err){toast(isGif(f)?'GIF 檔案太大，請選 650 KB 以內的 GIF':'封面上傳失敗，請換一張較小的圖片再試')}
 });
 const editBtns=(act,id,extra='')=>`<span class="eb edit-only"><button type="button" class="mini" data-act="edit-${act}" data-id="${id}" ${extra} aria-label="編輯">✎</button></span>`;
-const edtog=()=>`<button type="button" class="btn sm edtog ${ui.editing?'ok':'primary'}" aria-pressed="${ui.editing}">${ui.editing?'完成':'✎ 編輯'}</button>`;
-const secHead=(id,title,sub)=>`<h2 class="sec-h"><span class="ico ${({flights:'bg-b',days:'bg-p',transit:'bg-m',todo:'bg-y',hotels:'bg-l',explore:'bg-c',prep:'bg-g',pack:'bg-o',notes:'bg-y',ledger:'bg-g'})[id]}">${SVG.ico[id]}</span><span class="sec-t">${esc(title)}</span>${edtog()}<button type="button" class="mini eyeb sec-eye${navPref.hidden.includes(id)?'':' on'}" data-act="sec-toggle" data-k="${id}" aria-label="${navPref.hidden.includes(id)?'已隱藏，點一下顯示':'顯示中，點一下隱藏'}${esc(title)}" title="${navPref.hidden.includes(id)?'顯示':'隱藏'}">${navPref.hidden.includes(id)?SVG.eyeClosed:SVG.eyeOpen}</button></h2>${sub?`<p class="sec-sub">${esc(sub)}</p>`:''}`;
+const edtog=k=>{const on=ui.editing&&ui.editSec===k;return `<button type="button" class="btn sm edtog ${on?'ok':'primary'}" data-sec="${k}" aria-pressed="${on}">${on?'完成':'✎ 編輯'}</button>`};
+const secHead=(id,title,sub)=>`<h2 class="sec-h"><span class="ico ${({flights:'bg-b',days:'bg-p',transit:'bg-m',todo:'bg-y',hotels:'bg-l',explore:'bg-c',prep:'bg-g',pack:'bg-o',notes:'bg-y',ledger:'bg-g'})[id]}">${SVG.ico[id]}</span><span class="sec-t">${esc(title)}</span>${edtog(id)}<button type="button" class="mini eyeb sec-eye${navPref.hidden.includes(id)?'':' on'}" data-act="sec-toggle" data-k="${id}" aria-label="${navPref.hidden.includes(id)?'已隱藏，點一下顯示':'顯示中，點一下隱藏'}${esc(title)}" title="${navPref.hidden.includes(id)?'顯示':'隱藏'}">${navPref.hidden.includes(id)?SVG.eyeClosed:SVG.eyeOpen}</button></h2>${sub?`<p class="sec-sub">${esc(sub)}</p>`:''}`;
 
 function renderHero(){
   const t=S.trip,dep=t.depart?t.depart.slice(0,10):'';
@@ -1040,7 +1041,7 @@ function renderHero(){
   $('#top').innerHTML=`<div class="card hero">${coverHtml()}<div class="hero-body">
     ${S.sample?`<div class="banner"><p>目前是範例行程。按標題旁的「編輯」，就能把標題、航班、行程都改成你自己的。</p><button type="button" class="mini edit-only" data-act="dismiss" aria-label="關閉提示">✕</button></div>`:''}
     <div class="chips">${range?`<span class="chip y">${esc(range)}</span>`:''}${nd>0?`<span class="chip">${nd+1} 天 ${nd} 夜</span>`:''}</div>
-    <div class="h1row"><h1>${esc(t.title||'我的旅行')}</h1>${edtog()}</div>
+    <div class="h1row"><h1>${esc(t.title||'我的旅行')}</h1>${edtog('top')}</div>
     ${t.tagline?`<p class="tagline">${esc(t.tagline)}</p>`:''}
     <div class="cd-label" id="cdl">出發倒數</div><div class="cd" id="cd" role="timer" aria-live="off"></div>
     ${isDom()?'':'<div id="clock"></div>'}
@@ -1628,6 +1629,8 @@ function fixGrid(){
 
 /* ---------- 記帳／自動分帳（每個旅程可自行新增；資料存在該旅程裡並同步） ---------- */
 const LG_CUR={日本:'JPY',韓國:'KRW',泰國:'THB',越南:'VND',新加坡:'SGD',美國:'USD',台灣:'TWD'};
+const LG_NAMES={TWD:'台幣',JPY:'日幣',KRW:'韓幣',USD:'美元',EUR:'歐元',CNY:'人民幣',HKD:'港幣',MOP:'澳門幣',THB:'泰銖',VND:'越南盾',SGD:'新加坡幣',MYR:'馬幣',PHP:'菲律賓披索',IDR:'印尼盾',GBP:'英鎊',AUD:'澳幣',NZD:'紐幣',CAD:'加幣',CHF:'瑞士法郎'};
+const lgOpts=(...extra)=>[...new Set([...extra.filter(Boolean).map(x=>String(x).toUpperCase()),...Object.keys(LG_NAMES)])].map(c=>({v:c,t:(LG_NAMES[c]?LG_NAMES[c]+'　':'')+c}));
 const LG_COMMON=['TWD','JPY','KRW','USD','EUR','THB','VND','SGD','HKD','CNY','GBP','AUD','MYR','PHP','IDR','CAD','CHF'];
 const lgHome=g=>String(g.home||g.cur||'').toUpperCase();
 const lgCurOf=(g,it)=>String((it&&it.cur)||g.cur||lgHome(g)).toUpperCase();
@@ -1715,7 +1718,7 @@ function ledgerExpForm(it){
   const g=S.ledger;
   if(!g.members.length){toast('請先新增成員');return}
   const home=lgHome(g),fx=!!home;
-  const opts=[...new Set([g.cur&&g.cur.toUpperCase(),home,...lgUsed(g),...LG_COMMON].filter(Boolean))];
+  const opts=lgOpts(g.cur,home,...lgUsed(g));
   const fields=[{key:'date',label:'日期',type:'date',half:true},{key:'amount',label:'金額',type:'number',req:true,half:true,ph:'0'},
     ...(fx?[{key:'cur',label:'幣別',type:'select',options:opts,half:true},{key:'rate',label:'匯率（選填）',type:'number',half:true,ph:'自動'}]:[]),
     {key:'title',label:'項目',req:true,ph:'例如：晚餐拉麵'},
@@ -1759,9 +1762,12 @@ function ledgerExpForm(it){
 }
 function lgCurForm(){
   const g=S.ledger;
-  openForm({title:'幣別與匯率',fields:[{key:'cur',label:'旅遊地幣別',half:true,ph:'例如：JPY'},{key:'home',label:'結算幣別',half:true,ph:'例如：TWD'},
-    {key:'rate',label:'匯率：1 旅遊地幣別 ＝ ? 結算幣別',type:'number',ph:'自動'}],
-    values:{cur:g.cur,home:g.home||'',rate:(g.cur&&lgHome(g)&&g.cur.toUpperCase()!==lgHome(g)&&(g.rates||{})[g.cur.toUpperCase()])||''},
+  const c0=(g.cur||'').toUpperCase(),h0=lgHome(g);
+  openForm({title:'幣別與匯率',fields:[
+    {key:'cur',label:'旅遊地幣別',type:'select',options:lgOpts(c0),half:true},
+    {key:'home',label:'結算幣別',type:'select',options:lgOpts(h0||'TWD'),half:true},
+    {key:'rate',label:'匯率：1 旅遊地幣別 ＝ ? 結算幣別（選好幣別會自動換匯，也可手動改）',type:'number',ph:'自動'}],
+    values:{cur:c0,home:h0||'TWD',rate:(c0&&h0&&c0!==h0&&(g.rates||{})[c0])||''},
     onSave:v=>{
       const c=(v.cur||'').toUpperCase(),h=(v.home||'').toUpperCase(),typed=parseFloat(v.rate);
       const oldH=lgHome(g),hChanged=!!oldH&&!!h&&oldH!==h;
@@ -1773,18 +1779,26 @@ function lgCurForm(){
       if(!(typed>0))refreshRates(true);
     }});
   const f=$('#sf');if(!f)return;
-  const btn=document.createElement('div');
-  btn.style.cssText='grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;margin:.2rem 0 .6rem';
-  btn.innerHTML='<button type="button" class="btn sm">🌐 抓最新匯率</button><small class="mut">留空時儲存後會自動抓取；也可以手動輸入，之後每筆支出還能各自指定匯率。</small>';
-  f.insertBefore(btn,f.querySelector('.sheet-btns'));
-  btn.querySelector('button').addEventListener('click',async e=>{
-    const c=(f.elements.cur.value||'').toUpperCase(),h=(f.elements.home.value||'').toUpperCase();
-    if(!c||!h||c===h){toast('請先填兩種不同的幣別');return}
-    e.target.textContent='抓取中…';
+  const rate=f.elements.rate,rl=rate.closest('.fld'),box=document.createElement('div');
+  box.style.cssText='grid-column:1/-1;display:flex;flex-direction:column;align-items:flex-start;gap:.3rem;margin:.2rem 0 .6rem';
+  box.innerHTML='<button type="button" class="btn sm">🌐 重新抓最新匯率</button><small class="mut" id="fxst"></small>';
+  f.insertBefore(box,f.querySelector('.sheet-btns'));
+  const st=box.querySelector('#fxst'),btn=box.querySelector('button');
+  let seq=0;
+  const auto=async(force)=>{
+    const c=f.elements.cur.value.toUpperCase(),h=f.elements.home.value.toUpperCase(),my=++seq;
+    if(!c||!h||c===h){rate.value='';rate.placeholder='相同幣別不用換匯';rl.style.opacity=.5;st.textContent=c&&c===h?'旅遊地幣別與結算幣別相同，不需要換匯。':'';return}
+    rl.style.opacity=1;rate.value='';rate.placeholder='取得中…';st.textContent='正在抓取 '+c+' → '+h+' 的匯率…';
     const out=await fetchRatesFor(h,[c]);
-    e.target.textContent='🌐 抓最新匯率';
-    if(out&&out[c]){f.elements.rate.value=out[c];toast('已填入 1 '+c+' ≈ '+fmtRate(out[c])+' '+h)}else toast('目前抓不到匯率，請手動輸入');
-  });
+    if(my!==seq)return;
+    if(out&&out[c]){rate.value=out[c];rate.placeholder='';st.textContent='已自動換匯：1 '+c+' ≈ '+fmtRate(out[c])+' '+h}
+    else{rate.placeholder='請手動輸入';st.textContent='目前抓不到匯率（可能沒有網路），請手動輸入。'}
+  };
+  f.elements.cur.addEventListener('change',()=>auto());
+  f.elements.home.addEventListener('change',()=>auto());
+  btn.addEventListener('click',()=>auto());
+  if(c0&&h0&&c0!==h0&&!rate.value)auto();
+  else if(c0===h0)auto();
 }
 async function avatarImg(file){
   const im=await loadImg(file),n=192,c=document.createElement('canvas');c.width=c.height=n;
@@ -1866,7 +1880,7 @@ function renderHome(){
     return `<div class="tcard"><button type="button" class="tc-main" data-act="trip" data-id="${t.id}">${destIll(t.country)}<span class="tc-t"><b>${esc(tr.title||t.name)}</b><small>${esc(t.name)}・${isDom(t)?'國內'+(t.region?'・'+esc(t.region):''):esc(t.country)}</small>${range?`<small>${esc(range)}${nd>0?'（'+nd+' 天）':''}</small>`:''}</span><span class="tc-go" aria-hidden="true">›</span></button><div class="tc-acts"><button type="button" class="btn sm edit-only" data-act="rename-trip" data-id="${t.id}" aria-label="編輯旅程名稱：${esc(t.name)}">✎ 編輯名稱／地點</button>${d.ledger?`<button type="button" class="btn sm" data-act="open-ledger" data-id="${t.id}">${SVG.ui.coin}記帳／分帳</button>`:`<button type="button" class="btn sm edit-only" data-act="home-lg-on" data-id="${t.id}">＋ 新增記帳／分帳</button>`}<button type="button" class="btn sm danger edit-only" data-act="home-del" data-id="${t.id}">${SVG.ui.trash}刪除旅程</button></div></div>`};
   setTimeout(()=>{const ri=$('#homeView .strename input');if(ri&&!ri.dataset.f){ri.dataset.f=1;ri.focus();ri.select()}},0);
   const groups=[['國外旅程',ROOT.trips.filter(x=>!isDom(x))],['國內旅程',ROOT.trips.filter(x=>isDom(x))]].filter(g=>g[1].length);
-  box.innerHTML=`<div class="home-h"><h1><span class="hi">${SVG.ico.pack}</span>我的旅程</h1>${edtog()}</div>${groups.map(g=>`<h3 class="sgrp">${g[0]}</h3><div class="tgrid">${g[1].map(card).join('')}</div>`).join('')||'<p class="nothing">還沒有旅程，按下方新增。</p>'}<button type="button" class="add" data-act="add-trip" style="margin-top:.8rem">＋ 新增旅程</button>`;
+  box.innerHTML=`<div class="home-h"><h1><span class="hi">${SVG.ico.pack}</span>我的旅程</h1>${edtog('home')}</div>${groups.map(g=>`<h3 class="sgrp">${g[0]}</h3><div class="tgrid">${g[1].map(card).join('')}</div>`).join('')||'<p class="nothing">還沒有旅程，按下方新增。</p>'}<button type="button" class="add" data-act="add-trip" style="margin-top:.8rem">＋ 新增旅程</button>`;
 }
 function renderAll(){renderHome();renderHero();renderFlights();renderDays(false);renderTransit();renderExplore();renderHotels();['todo','prep','pack','notes'].forEach(renderList);renderLedger();renderFoot();try{renderNav();applyOrder()}catch(e){}fixGrid();refreshMeAv();}
 
@@ -1896,7 +1910,7 @@ function fieldHtml(f,v){
   const id='ff-'+f.key,req=f.req?' required':'',half=f.half?' half':'';
   if(f.type==='checkbox')return `<label class="crow"><input type="checkbox" id="${id}" name="${f.key}" ${v?'checked':''}><span class="box">${SVG.check}</span><span>${esc(f.label)}</span></label>`;
   let ctl;
-  if(f.type==='select')ctl=`<select id="${id}" name="${f.key}">${f.options.map(o=>`<option${o===v?' selected':''}>${esc(o)}</option>`).join('')}</select>`;
+  if(f.type==='select')ctl=`<select id="${id}" name="${f.key}">${f.options.map(o=>{const ov=(o&&typeof o==='object')?o.v:o,ot=(o&&typeof o==='object')?o.t:o;return `<option value="${esc(ov)}"${ov===v?' selected':''}>${esc(ot)}</option>`}).join('')}</select>`;
   else if(f.type==='textarea')ctl=`<textarea id="${id}" name="${f.key}" rows="3" placeholder="${esc(f.ph||'')}">${esc(v??'')}</textarea>`;
   else ctl=`<input id="${id}" name="${f.key}" type="${f.type||'text'}"${f.step?` step="${f.step}"`:''} value="${esc(v??'')}" placeholder="${esc(f.ph||'')}"${req}${f.list?` list="${f.list}"`:''}>`;
   return `<label class="fld${half}" for="${id}"><span>${esc(f.label)}${f.req?' *':''}</span>${ctl}</label>`;
@@ -1914,10 +1928,14 @@ function openForm({title,fields,values={},onSave,onDelete}){
 }
 
 /* ---------- 編輯權限（密碼） ---------- */
-function setEditing(on){
-  if(!on&&ui.renaming){ui.renaming=null;renderTrips()}
-  ui.editing=on;document.body.classList.toggle('editing',on);
-  $$('.edtog').forEach(b=>{b.textContent=on?'完成':'✎ 編輯';b.classList.toggle('primary',!on);b.classList.toggle('ok',on);b.setAttribute('aria-pressed',on)});
+const secEl=k=>k==='home'?$('#homeView'):k==='lg'?$('#lgView'):document.getElementById(k);
+function setEditing(on,key){
+  if(!on&&ui.renaming){ui.renaming=null;renderHome()}
+  $$('.sec-on').forEach(x=>x.classList.remove('sec-on'));
+  ui.editing=!!on;ui.editSec=on?key:null;
+  document.body.classList.toggle('editing',!!on);
+  if(on){const el=secEl(key);if(el)el.classList.add('sec-on')}
+  $$('.edtog').forEach(b=>{const m=!!on&&b.dataset.sec===key;b.textContent=m?'完成':'✎ 編輯';b.classList.toggle('primary',!m);b.classList.toggle('ok',m);b.setAttribute('aria-pressed',m)});
   refreshMeAv();
 }
 function askPw(cb){
@@ -2166,8 +2184,9 @@ $('#phInput').addEventListener('change',e=>{
 });
 document.addEventListener('click',e=>{
   const b=e.target.closest&&e.target.closest('.edtog');if(!b)return;
-  if(ui.editing){setEditing(false);return}
-  if(ui.unlocked)setEditing(true);else askPw(()=>setEditing(true));
+  const k=b.dataset.sec;
+  if(ui.editing&&ui.editSec===k){setEditing(false);return}
+  if(ui.unlocked)setEditing(true,k);else askPw(()=>setEditing(true,k));
 });
 $('#meAv').addEventListener('click',profileSheet);
 
@@ -2214,7 +2233,7 @@ function applyNav(){
   else{fab.style.left=Math.min(Math.max(8,Math.round(navPref.fx*innerWidth)),innerWidth-56)+'px';fab.style.right='auto'}
   try{localStorage.setItem(NK,JSON.stringify(navPref))}catch(e){}
 }
-function setView(v){view=v;document.body.dataset.view=v;applyNav();
+function setView(v){if(ui.editing&&view!==v)setEditing(false);view=v;document.body.dataset.view=v;applyNav();
   if(v==='home')renderHome();
   if(v==='ledger'){renderLedger();try{const g=S.ledger;if(g&&ui.unlocked&&lgHome(g)&&g.cur&&g.cur.toUpperCase()!==lgHome(g)&&(!g.ratesAt||Date.now()-g.ratesAt>432e5))refreshRates(true)}catch(e){}const t=$('#lgTrip');if(t)t.textContent=(S.trip.title||curTrip().name||'')}
   scrollTo({top:0});spyId='';
