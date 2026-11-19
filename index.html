@@ -532,6 +532,46 @@ body.navb #homeView,body.navb #lgView{padding-bottom:calc(6rem + env(safe-area-i
 .tc-acts{display:flex;gap:.4rem;flex-wrap:wrap}
 .lg-bar{display:flex;align-items:center;gap:.6rem;margin:.2rem 0 .8rem}
 .lg-bar b{font-weight:400;flex:1;min-width:0}
+
+/* 記帳／分帳版面 */
+#ledger.sec{padding-bottom:1.2rem}
+.lgc{background:var(--white);border:2px solid var(--ink);border-radius:26px;padding:1rem 1.1rem;display:flex;flex-direction:column;gap:.8rem;margin-top:.9rem;min-width:0;overflow:hidden}
+.lgc-h{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap}
+.lgc-h h3{flex:1;min-width:0;font-weight:400;font-size:1.1rem;margin:0}
+.lgc.sum{background:var(--yellow)}
+.lgc .big{font-size:2.1rem;line-height:1.2;overflow-wrap:anywhere}
+.lgc .stats{display:flex;gap:.4rem;flex-wrap:wrap}
+.lgc .stats .chip{background:var(--white)}
+.lg-none{margin:0;color:var(--ink-soft);font-size:.92rem}
+.av{flex:none;width:34px;height:34px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-size:.95rem}
+.mem{display:flex;flex-wrap:wrap;gap:.5rem}
+.mchip{display:flex;align-items:center;gap:.4rem;border:2px solid var(--ink);border-radius:999px;padding:.15rem .7rem .15rem .2rem;background:var(--paper);min-width:0;max-width:100%}
+.mchip .mn{min-width:0;overflow-wrap:anywhere}
+.brow,.erow{display:flex;align-items:center;gap:.6rem;padding:.55rem 0;border-bottom:1.5px dotted var(--ink);min-width:0}
+.brow:last-child,.erow:last-child{border-bottom:0}
+.brow .who,.erow .t{flex:1;min-width:0;overflow-wrap:anywhere;display:flex;flex-direction:column}
+.brow small,.erow small{color:var(--ink-soft);display:block}
+.badge{flex:none;border:2px solid var(--ink);border-radius:999px;padding:0 .7rem;font-size:.85rem;line-height:1.7;white-space:nowrap}
+.badge.pos{background:#cdeccf}.badge.neg{background:#ffd3cc}.badge.zero{background:var(--paper)}
+.lg-tx2{display:grid;gap:.5rem}
+.trow{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;border:2px dashed var(--ink);border-radius:20px;padding:.4rem .8rem;min-width:0}
+.trow .amt{margin-left:auto;font-weight:700}
+.erow .dt{flex:none;width:52px;text-align:center;border:2px solid var(--ink);border-radius:14px;background:var(--blue);font-size:.8rem;line-height:1.3;padding:.2rem 0}
+.erow .a{font-weight:700;white-space:nowrap}
+.lgc .add{margin-top:.2rem}
+.erow .rt{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:.3rem;max-width:40%}
+.erow .a{overflow-wrap:anywhere;white-space:normal;text-align:right}
+
+/* SVG 插圖圖示 */
+.bi.ill{display:inline-block;width:1.2em;height:1.2em;vertical-align:-.22em;margin-right:.3rem;--sw:2.2}
+.hi{display:inline-flex;vertical-align:middle;margin-right:.45rem}
+.hi svg{width:30px;height:30px;--sw:2.5}
+.home-h h1{display:flex;align-items:center}
+.dill{flex:none;width:44px;height:44px;border:2px solid var(--ink);border-radius:50%;background:#FFF3D6;display:grid;place-items:center;overflow:hidden}
+.dill svg{width:36px;height:36px;--sw:2.4}
+.tc-main .dill{width:68px;height:68px}
+.tc-main .dill svg{width:56px;height:56px;--sw:2.3}
+.ph-file .bi.ill,.ph-add .bi.ill{width:1.1em;height:1.1em}
 </style>
 
 
@@ -543,7 +583,7 @@ body.navb #homeView,body.navb #lgView{padding-bottom:calc(6rem + env(safe-area-i
 <div id="sideScrim" class="side-scrim" data-act="side-close"></div>
 <header class="nav" id="navbar">
   <div class="nav-in wrap">
-    <button id="homeBtn" class="btn sm" type="button" data-act="go-home" aria-label="回到首頁" style="flex:none;margin-bottom:3px">🏠</button>
+    <button id="homeBtn" class="btn sm" type="button" data-act="go-home" aria-label="回到首頁" style="flex:none;margin-bottom:3px">首頁</button>
     <button id="sideBtn" class="btn sm" type="button" data-act="side-open" aria-label="開啟旅程選單" style="flex:none;margin-bottom:3px">☰</button>
     <nav id="nav" aria-label="頁面章節">
       
@@ -861,6 +901,30 @@ const SVG={
   eyeOpen:`<svg class="ill" viewBox="0 0 32 24" aria-hidden="true"><path class="fw" d="M2 12C6 5 11 3 16 3s10 2 14 9c-4 7-9 9-14 9S6 19 2 12z"/><circle class="fb" cx="16" cy="12" r="5.6"/><circle class="fi ns" cx="16" cy="12" r="2.4"/><circle class="fw ns" cx="17.7" cy="10.3" r="1.3"/></svg>`,
   eyeClosed:`<svg class="ill" viewBox="0 0 32 24" aria-hidden="true"><path class="fy" d="M3 8c4 9 22 9 26 0z"/><path d="M8 15.5l-2.2 3.2M16 17.6v3.8M24 15.5l2.2 3.2"/></svg>`,
   check:`<svg class="ill" viewBox="0 0 20 20" aria-hidden="true"><path d="M4 10.5l4 4 8-9"/></svg>`,
+  ui:{
+    palette:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><path class="fy" d="M16 4C8 4 3 10 3 16s5 12 12 12c3 0 3-3 1-5s0-4 3-4h4c4 0 6-2 6-5C29 8 23 4 16 4z"/><circle class="fc" cx="10" cy="15" r="2"/><circle class="fb" cx="15" cy="9" r="2"/><circle class="fg" cx="22" cy="10" r="2"/></svg>`,
+    dice:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><rect class="fw" x="4" y="4" width="24" height="24" rx="7"/><circle class="fi ns" cx="11" cy="11" r="2"/><circle class="fi ns" cx="21" cy="11" r="2"/><circle class="fi ns" cx="16" cy="16" r="2"/><circle class="fi ns" cx="11" cy="21" r="2"/><circle class="fi ns" cx="21" cy="21" r="2"/></svg>`,
+    image:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><rect class="fw" x="3" y="5" width="26" height="22" rx="5"/><circle class="fy" cx="21" cy="12" r="3"/><path class="fg" d="M5 25l7-9 5 6 4-4 6 7z"/></svg>`,
+    clip:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><path d="M21 9l-9 9a3 3 0 004 4l10-10a5 5 0 00-7-7L8 16a7 7 0 0010 10l6-6"/></svg>`,
+    file:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><path class="fw" d="M7 3h13l6 6v20H7z"/><path class="fy" d="M20 3v6h6z"/><path d="M11 15h11M11 20h11M11 25h7"/></svg>`,
+    train:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><rect class="fb" x="6" y="4" width="20" height="20" rx="6"/><rect class="fw" x="9" y="8" width="14" height="8" rx="2"/><circle class="fy" cx="12" cy="20" r="1.6"/><circle class="fy" cx="20" cy="20" r="1.6"/><path d="M10 28l3-4M22 28l-3-4"/></svg>`,
+    trash:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><path class="fw" d="M8 10h16l-1.5 18h-13z"/><path d="M5 10h22M12 10V6h8v4M13 15v9M19 15v9"/></svg>`,
+    people:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><circle class="fy" cx="11" cy="11" r="5"/><path class="fy" d="M2 28q0-9 9-9t9 9z"/><circle class="fc" cx="22" cy="10" r="4.5"/><path class="fc" d="M15 28q1-8 7-8t8 8z"/></svg>`,
+    scale:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 5v21M9 27h14M5 9h22"/><path class="fy" d="M5 9l-3.5 8q3.5 4 7 0z"/><path class="fb" d="M27 9l-3.5 8q3.5 4 7 0z"/><circle class="fc" cx="16" cy="5" r="2"/></svg>`,
+    receipt:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><path class="fw" d="M7 3h18v26l-3-2-3 2-3-2-3 2-3-2-3 2z"/><path d="M11 10h10M11 15h10M11 20h6"/></svg>`,
+    coin:`<svg class="ill bi" viewBox="0 0 32 32" aria-hidden="true"><circle class="fy" cx="16" cy="16" r="12"/><circle cx="16" cy="16" r="7"/><path d="M16 12v8M13.5 14h5M13.5 18h5"/></svg>`,
+  },
+  dest:{
+    '日本':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><circle class="fy" cx="52" cy="13" r="6"/><path class="fb" d="M3 54L23 16Q32 4 41 16L61 54z"/><path class="fw" d="M17 30l6-14Q32 4 41 16l6 14-7-3-6 5-6-5z"/><path class="fc" d="M14 38h36q-1 5-4 5H18q-3 0-4-5z"/><rect class="fc" x="19" y="43" width="5" height="11"/><rect class="fc" x="40" y="43" width="5" height="11"/><rect class="fc" x="17" y="46" width="30" height="3"/><path d="M3 56h58"/></svg>`,
+    '韓國':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><path class="fy" d="M32 18Q33 10 35 8Q31 10 29 8Q31 10 32 18z"/><path class="fb" d="M3 27Q13 29 18 20H46Q51 29 61 27Q57 36 50 36H14Q7 36 3 27z"/><rect class="fw" x="14" y="36" width="36" height="18"/><rect class="fc" x="15" y="36" width="5" height="18"/><rect class="fc" x="44" y="36" width="5" height="18"/><path class="fy" d="M25 54V44Q32 36 39 44V54z"/><path d="M32 40v14M4 56h56"/></svg>`,
+    '泰國':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><path class="fy" d="M32 4Q35 15 37 21Q42 27 43 36H21Q22 27 27 21Q29 15 32 4z"/><path d="M28 30h8M27 25h10"/><rect class="fc" x="15" y="36" width="34" height="8" rx="2"/><rect class="fw" x="9" y="44" width="46" height="10" rx="2"/><path d="M17 49h30M4 57h56"/><circle class="fb" cx="53" cy="14" r="5"/></svg>`,
+    '越南':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><ellipse class="fs" cx="32" cy="43" rx="27" ry="7"/><path class="fy" d="M32 7L6 42Q32 54 58 42z"/><path d="M32 7L21 47M32 7V50M32 7L43 47" opacity=".5"/><path class="fc" d="M21 47Q19 54 23 59M43 47Q45 54 41 59"/><circle class="fg" cx="54" cy="12" r="4"/></svg>`,
+    '新加坡':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><rect class="fw" x="12" y="20" width="9" height="34"/><rect class="fw" x="27.5" y="20" width="9" height="34"/><rect class="fw" x="43" y="20" width="9" height="34"/><path d="M12 28h9M12 36h9M12 44h9M27.5 28h9M27.5 36h9M27.5 44h9M43 28h9M43 36h9M43 44h9"/><path class="fg" d="M5 14h54q-2 7-9 7H14q-7 0-9-7z"/><path class="fb" d="M3 57q6-4 11 0t11 0 11 0 11 0 11 0"/></svg>`,
+    '歐洲':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><circle class="fy" cx="50" cy="14" r="6"/><path class="fc" d="M32 4Q34 22 36 32L45 57H36Q32 45 28 57H19L28 32Q30 22 32 4z"/><path d="M28.6 33h6.8M25 44h14"/><path class="fw" d="M28.5 57Q32 47 35.5 57z"/><path d="M5 59h54"/></svg>`,
+    '美國':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><path class="fg" d="M20 58V44Q20 34 25 30H39Q44 34 44 44V58z"/><circle class="fg" cx="32" cy="23" r="9"/><path class="fy" d="M23 17L18 9M27.5 14L26 5M32 13V3M36.5 14L38 5M41 17L46 9"/><path d="M28 24h.1M36 24h.1M29 28q3 2 6 0"/><path class="fy" d="M54 8l1.5 3.5 3.5.5-2.6 2.4.7 3.6-3.1-1.8-3.1 1.8.7-3.6L49 12l3.5-.5z"/></svg>`,
+    '台灣':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><path d="M32 3v9"/><circle class="fy" cx="32" cy="4" r="2"/><path class="fg" d="M27 12h10l1.5 8h-13z"/><path class="fb" d="M25.5 20h13l1.5 8H24z"/><path class="fg" d="M24 28h16l1.5 8h-19z"/><path class="fb" d="M22.5 36h19l1.5 8h-22z"/><path class="fg" d="M21 44h22l2 11H19z"/><path d="M13 57h38"/><circle class="fc" cx="52" cy="22" r="5"/></svg>`,
+    '其他':`<svg class="ill" viewBox="0 0 64 64" aria-hidden="true" style="--sw:2.5"><circle class="fb" cx="30" cy="36" r="21"/><path class="fg" d="M15 28q6-7 13-3t-1 10q-9 2-12-7zM35 40q9-4 12 2t-6 11q-8-3-6-13z"/><path class="fw" d="M42 12l15-6-6 15-6-3z"/><path d="M6 14q6-8 14-9" stroke-dasharray="1 5"/></svg>`,
+  },
   ico:{
     flights:`<svg class="ill" viewBox="0 0 40 40" aria-hidden="true"><ellipse cx="20" cy="22" rx="17" ry="6" class="fw"/><path class="fb" d="M16 18L10 6h7l9 12z"/><path class="fb" d="M16 26l-4 10h7l7-10z"/><path class="fc" d="M5 19L2 11h6l3 7z"/><circle cx="26" cy="21" r="1.2" class="fi"/><circle cx="31" cy="21" r="1.2" class="fi"/></svg>`,
     days:`<svg class="ill" viewBox="0 0 40 40" aria-hidden="true"><path class="fc" d="M20 36C8 24 8 14 14 9Q20 4 26 9C32 14 32 24 20 36Z"/><circle cx="20" cy="17" r="4.5" class="fw"/></svg>`,
@@ -892,6 +956,7 @@ function dayIll(d,idx){
 /* ---------- 版面渲染 ---------- */
 const STY={classic:'經典新幹線',beach:'海灘假期',night:'夜晚城市',balloon:'熱氣球',sakura:'櫻花飄落'};
 const rng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const destIll=c=>`<span class="dill">${SVG.dest[c]||SVG.dest.其他}</span>`;
 function genCover(st,seed){
   if(!STY[st]||st==='classic')return SVG.hero;
   const R=rng(seed||1),r=(a,b)=>a+R()*(b-a),pk=a=>a[Math.floor(R()*a.length)],f=n=>n.toFixed(0);
@@ -928,7 +993,7 @@ function genCover(st,seed){
 function coverHtml(){const c=S.cover;return c.mode==='custom'&&c.img?`<div class="cover-img"><img data-ph="${c.img}" alt="封面照片"></div>`:genCover(c.style,c.seed)}
 function coverSheet(){
   const c=S.cover,set=o=>{mutate(()=>{S.cover={...S.cover,...o}});coverSheet()};
-  openSheet(`<h3 id="sheet-t">更換封面</h3><p class="mut">選一種動態插圖，或按「隨機生成」每次都有不同的畫面，也可以上傳自己的照片或 GIF 動圖（GIF 上限約 650 KB）。</p><div class="covbtns"><button type="button" class="btn primary" data-sheet="rnd">🎲 隨機生成</button><button type="button" class="btn ${c.mode==='custom'?'sel':''}" data-sheet="up">🖼 上傳自訂照片／GIF</button></div><p class="mut">插圖樣式</p><div class="covbtns">${Object.keys(STY).map(k=>`<button type="button" class="btn sm ${c.mode!=='custom'&&c.style===k?'sel':''}" data-sheet="st" data-k="${k}">${STY[k]}</button>`).join('')}</div><div class="sheet-btns"><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
+  openSheet(`<h3 id="sheet-t">更換封面</h3><p class="mut">選一種動態插圖，或按「隨機生成」每次都有不同的畫面，也可以上傳自己的照片或 GIF 動圖（GIF 上限約 650 KB）。</p><div class="covbtns"><button type="button" class="btn primary" data-sheet="rnd">${SVG.ui.dice}隨機生成</button><button type="button" class="btn ${c.mode==='custom'?'sel':''}" data-sheet="up">${SVG.ui.image}上傳自訂照片／GIF</button></div><p class="mut">插圖樣式</p><div class="covbtns">${Object.keys(STY).map(k=>`<button type="button" class="btn sm ${c.mode!=='custom'&&c.style===k?'sel':''}" data-sheet="st" data-k="${k}">${STY[k]}</button>`).join('')}</div><div class="sheet-btns"><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
     rnd:()=>set({mode:'scene',style:pk(Object.keys(STY).filter(k=>k!=='classic')),seed:1+Math.floor(Math.random()*1e6)}),
     st:b=>set({mode:'scene',style:b.dataset.k,seed:S.cover.seed>1?S.cover.seed:1+Math.floor(Math.random()*1e6)}),
     up:()=>$('#covInput').click()
@@ -957,7 +1022,7 @@ function renderHero(){
     <div class="cd-label" id="cdl">出發倒數</div><div class="cd" id="cd" role="timer" aria-live="off"></div>
     ${isDom()?'':'<div id="clock"></div>'}
     <button type="button" class="btn sm edit-only" style="align-self:flex-start" data-act="edit-trip">✎ 修改標題與日期</button>
-    <div class="edit-only" style="display:flex;gap:.5rem;flex-wrap:wrap"><button type="button" class="btn sm" data-act="cover">🎨 更換封面</button>${S.ledger?'':'<button type="button" class="btn sm" data-act="lg-on">＋ 新增記帳／分帳分頁</button>'}<button type="button" class="btn sm danger" data-act="del-trip">🗑 刪除此旅程</button></div>
+    <div class="edit-only" style="display:flex;gap:.5rem;flex-wrap:wrap"><button type="button" class="btn sm" data-act="cover">${SVG.ui.palette}更換封面</button></div>
   </div></div>`;
   hydratePhotos($('#top'));tick();
 }
@@ -1039,7 +1104,7 @@ function renderDays(anim){
   (items.length?`<ol class="tl">${items.map((x,i)=>`<li class="tl-i${anim?' pop-in':''}" id="it-${x.id}" style="--i:${i}">
     <time class="tl-t">${esc(x.time||'')}</time><span class="rail"><i class="dot${x.must?' must':''}"></i></span>
     <div class="tl-c${x.must?' must':''}"><div class="tl-tags">${x.tr?`<span class="tag ${TR[x.tr]??''}">${esc(x.tr)}</span>`:''}${x.must?`<span class="mustb">${SVG.star}必去</span>`:''}</div>
-    <h4>${esc(x.title)}</h4>${x.trNote?`<p>🚆 ${nl(x.trNote)}</p>`:''}${x.note?`<p>${nl(x.note)}</p>`:''}${x.addr?mapBtn(x.addr):''}${editBtns('item',x.id,`data-day="${d.id}"`)}</div></li>`).join('')}</ol>`:'<p class="empty" style="margin-top:1.1rem">這天還沒有安排。</p>')+
+    <h4>${esc(x.title)}</h4>${x.trNote?`<p>${SVG.ui.train}${nl(x.trNote)}</p>`:''}${x.note?`<p>${nl(x.note)}</p>`:''}${x.addr?mapBtn(x.addr):''}${editBtns('item',x.id,`data-day="${d.id}"`)}</div></li>`).join('')}</ol>`:'<p class="empty" style="margin-top:1.1rem">這天還沒有安排。</p>')+
   `<button type="button" class="add edit-only" style="margin-top:.2rem" data-act="add-item" data-id="${d.id}">＋ 新增行程</button>`;
   if(anim){const a=$('#tab-'+d.id);a.classList.add('bounce');a.scrollIntoView?.({inline:'center',block:'nearest',behavior:reduced()?'auto':'smooth'})}
 }
@@ -1133,7 +1198,7 @@ function renderList(id){
 function phStrip(listId,i){
   if(listId!=='todo')return '';
   const ps=i.photos||[];
-  return `<div class="ph-strip${ps.length?' has':''}">${ps.map(p=>p.file?`<button type="button" class="ph-file" data-act="ph-view" data-list="${listId}" data-id="${i.id}" data-pid="${p.id}" aria-label="查看檔案">📄 ${esc(p.name||'檔案')}</button>`:`<button type="button" class="ph-th" data-act="ph-view" data-list="${listId}" data-id="${i.id}" data-pid="${p.id}" aria-label="查看照片"><img data-ph="${p.id}" alt="${esc(p.name||'照片')}"></button>`).join('')}<button type="button" class="ph-add edit-only" data-act="ph-add" data-list="${listId}" data-id="${i.id}">📎 新增照片／檔案</button></div>`;
+  return `<div class="ph-strip${ps.length?' has':''}">${ps.map(p=>p.file?`<button type="button" class="ph-file" data-act="ph-view" data-list="${listId}" data-id="${i.id}" data-pid="${p.id}" aria-label="查看檔案">${SVG.ui.file}${esc(p.name||'檔案')}</button>`:`<button type="button" class="ph-th" data-act="ph-view" data-list="${listId}" data-id="${i.id}" data-pid="${p.id}" aria-label="查看照片"><img data-ph="${p.id}" alt="${esc(p.name||'照片')}"></button>`).join('')}<button type="button" class="ph-add edit-only" data-act="ph-add" data-list="${listId}" data-id="${i.id}">${SVG.ui.clip}新增照片／檔案</button></div>`;
 }
 function hydratePhotos(root){
   $$('img[data-ph]',root||document).forEach(img=>{
@@ -1247,9 +1312,9 @@ function renderTrips(){
   const cur=curTrip().id;
   const row=t=>{
     if(ui.renaming===t.id)return `<form class="strename" data-id="${t.id}"><input name="name" value="${esc(t.name)}" maxlength="40" aria-label="分頁名稱" placeholder="分頁名稱"><select name="scope" aria-label="旅程類型">${SCOPES.map((k,i)=>`<option${(i===1)===isDom(t)?' selected':''}>${k}</option>`).join('')}</select><select name="country" aria-label="國家（國外旅程）"${isDom(t)?' style="display:none"':''}>${ctAbroad().map(k=>`<option${k===t.country?' selected':''}>${esc(k)}</option>`).join('')}</select><select name="region" aria-label="縣市（國內旅程）"${isDom(t)?'':' style="display:none"'}>${TW_REGIONS.map(k=>`<option${k===(t.region||REGION_NONE)?' selected':''}>${esc(k)}</option>`).join('')}</select><div class="strow2"><button type="button" class="btn sm" data-act="rename-cancel">取消</button><button type="submit" class="btn sm primary">儲存</button></div></form>`;
-    return `<div class="strow"><button type="button" class="st" role="tab" aria-selected="${t.id===cur}" data-act="trip" data-id="${t.id}"><span class="e">${(CT[t.country]||CT.其他).e}</span><span><b>${esc(t.name)}</b><small>${isDom(t)?'國內'+(t.region?'・'+esc(t.region):''):esc(t.country)}</small></span></button><span class="eb edit-only"><button type="button" class="mini" data-act="rename-trip" data-id="${t.id}" aria-label="編輯分頁名稱：${esc(t.name)}">✎</button></span></div>`;
+    return `<div class="strow"><button type="button" class="st" role="tab" aria-selected="${t.id===cur}" data-act="trip" data-id="${t.id}">${destIll(t.country)}<span><b>${esc(t.name)}</b><small>${isDom(t)?'國內'+(t.region?'・'+esc(t.region):''):esc(t.country)}</small></span></button><span class="eb edit-only"><button type="button" class="mini" data-act="rename-trip" data-id="${t.id}" aria-label="編輯分頁名稱：${esc(t.name)}">✎</button></span></div>`;
   };
-  $('#side').innerHTML=`<div class="side-h"><h2>🧳 我的旅程</h2><button type="button" class="mini side-close" data-act="side-close" aria-label="收合旅程選單"><span class="ic-m">✕</span><span class="ic-d">‹</span></button></div>${[['國外旅程',ROOT.trips.filter(x=>!isDom(x))],['國內旅程',ROOT.trips.filter(x=>isDom(x))]].filter(g=>g[1].length).map(g=>`<h3 class="sgrp">${g[0]}</h3>${g[1].map(row).join('')}`).join('')}<button type="button" class="add" data-act="add-trip">＋ 新增旅程</button>`;
+  $('#side').innerHTML=`<div class="side-h"><h2><span class="hi">${SVG.ico.pack}</span>我的旅程</h2><button type="button" class="mini side-close" data-act="side-close" aria-label="收合旅程選單"><span class="ic-m">✕</span><span class="ic-d">‹</span></button></div>${[['國外旅程',ROOT.trips.filter(x=>!isDom(x))],['國內旅程',ROOT.trips.filter(x=>isDom(x))]].filter(g=>g[1].length).map(g=>`<h3 class="sgrp">${g[0]}</h3>${g[1].map(row).join('')}`).join('')}<button type="button" class="add" data-act="add-trip">＋ 新增旅程</button>`;
   const ri=$('#side .strename input');if(ri&&!ri.dataset.f){ri.dataset.f=1;ri.focus();ri.select()}
 }
 document.addEventListener('submit',e=>{
@@ -1577,18 +1642,23 @@ function renderLedger(){
   const cur=g.cur?' '+esc(g.cur):'';
   const f=n=>money(n)+cur;
   const c=ledgerCalc();
-  const mem=`<div class="card"><div class="lg-h"><h3>成員</h3><span class="edit-only"><button type="button" class="btn sm" data-act="lg-cur">✎ 幣別${g.cur?'：'+esc(g.cur):''}</button></span></div>
-    <div class="lg-members">${g.members.length?g.members.map(m=>`<span class="chip">${esc(m.name)}<button type="button" class="mini edit-only" data-act="lg-edit-mem" data-id="${m.id}" aria-label="編輯成員">✎</button></span>`).join(''):'<p class="nothing">還沒有成員，編輯模式下先新增一起旅行的人。</p>'}</div>
+  const PAL=['#FFB7AE','#B8DFF5','#BFE8C0','#DCCDF7','#FFD2AE','#FFC8DE','#BEEBDD','#FFE59A'];
+  const av=(id,name)=>{const k=Math.max(0,g.members.findIndex(m=>m.id===id));return `<span class="av" style="background:${PAL[k%PAL.length]}" aria-hidden="true">${esc(String(name||'?').trim().slice(0,1)||'?')}</span>`};
+  const sum=`<div class="lgc sum"><div class="lgc-h"><h3><span class="hi">${SVG.ico.ledger}</span>總支出</h3><span class="edit-only"><button type="button" class="btn sm" data-act="lg-cur">✎ 幣別${g.cur?'：'+esc(g.cur):''}</button></span></div>
+    <div class="big">${f(c.total)}</div>
+    <div class="stats"><span class="chip">${g.members.length} 位成員</span><span class="chip">${g.items.length} 筆支出</span>${g.members.length&&g.items.length?`<span class="chip">每人平均 ${f(c.total/g.members.length)}</span>`:''}</div></div>`;
+  const mem=`<div class="lgc"><div class="lgc-h"><h3><span class="hi">${SVG.ui.people}</span>成員</h3></div>
+    ${g.members.length?`<div class="mem">${g.members.map(m=>`<span class="mchip">${av(m.id,m.name)}<span class="mn">${esc(m.name)}</span><button type="button" class="mini edit-only" data-act="lg-edit-mem" data-id="${m.id}" aria-label="編輯成員">✎</button></span>`).join('')}</div>`:'<p class="lg-none">還沒有成員，編輯模式下先新增一起旅行的人。</p>'}
     <button type="button" class="add edit-only" data-act="lg-add-mem">＋ 新增成員</button></div>`;
-  const bal=g.members.length?`<div class="card"><div class="lg-h"><h3>結算</h3></div><p class="lg-sum">總支出：<b>${f(c.total)}</b></p>
-    <table class="lg-tbl"><thead><tr><th>成員</th><th>已付</th><th>應分攤</th><th>結餘</th></tr></thead><tbody>${g.members.map(m=>{const b=Math.round(c.bal[m.id]*100)/100;return `<tr><td>${esc(m.name)}</td><td>${money(c.paid[m.id])}</td><td>${money(c.owe[m.id])}</td><td class="${b>0?'lg-pos':b<0?'lg-neg':''}">${b>0?'應收 '+money(b):b<0?'應付 '+money(-b):'已結清'}</td></tr>`}).join('')}</tbody></table>
-    ${c.tx.length?`<ul class="lg-tx">${c.tx.map(t=>`<li><b>${esc(nm(t.from))}</b> ➔ <b>${esc(nm(t.to))}</b>　${f(t.v)}</li>`).join('')}</ul>`:`<p class="nothing" style="margin-top:.5rem">${g.items.length?'目前不用互相轉帳，帳都平了。':'新增支出後，這裡會自動算出誰該付給誰。'}</p>`}</div>`:'';
+  const bal=g.members.length?`<div class="lgc"><div class="lgc-h"><h3><span class="hi">${SVG.ui.scale}</span>結算</h3></div>
+    <div>${g.members.map(m=>{const b=Math.round(c.bal[m.id]*100)/100;return `<div class="brow">${av(m.id,m.name)}<span class="who"><b>${esc(m.name)}</b><small>已付 ${money(c.paid[m.id])}・應分攤 ${money(c.owe[m.id])}</small></span><span class="badge ${b>0?'pos':b<0?'neg':'zero'}">${b>0?'應收 '+money(b):b<0?'應付 '+money(-b):'已結清'}</span></div>`}).join('')}</div>
+    ${c.tx.length?`<div class="lg-tx2">${c.tx.map(t=>`<div class="trow"><b>${esc(nm(t.from))}</b><span aria-hidden="true">➔</span><b>${esc(nm(t.to))}</b><span class="amt">${f(t.v)}</span></div>`).join('')}</div>`:`<p class="lg-none">${g.items.length?'目前不用互相轉帳，帳都平了。':'新增支出後，這裡會自動算出誰該付給誰。'}</p>`}</div>`:'';
   const items=[...g.items].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
-  const exp=`<div class="card"><div class="lg-h"><h3>支出紀錄</h3></div>
-    ${items.length?`<ul class="lg-exp">${items.map(it=>{const sp=(it.split||[]).filter(id=>g.members.some(m=>m.id===id));const all=sp.length===g.members.length;return `<li><div class="t"><b>${esc(it.title)}</b><small>${it.date?md(it.date)+' · ':''}${esc(nm(it.payer))} 先付 · 分攤：${all?'全員':sp.map(id=>esc(nm(id))).join('、')||'—'}${it.note?' · '+esc(it.note):''}</small></div><span class="a">${f(+it.amount||0)}</span><span class="eb edit-only"><button type="button" class="mini" data-act="lg-edit-exp" data-id="${it.id}" aria-label="編輯支出">✎</button></span></li>`}).join('')}</ul>`:'<p class="nothing">還沒有支出紀錄。</p>'}
+  const exp=`<div class="lgc"><div class="lgc-h"><h3><span class="hi">${SVG.ui.receipt}</span>支出紀錄</h3></div>
+    ${items.length?`<div>${items.map(it=>{const sp=(it.split||[]).filter(id=>g.members.some(m=>m.id===id));const all=sp.length===g.members.length;return `<div class="erow"><span class="dt">${it.date?md(it.date):'—'}</span><span class="t"><b>${esc(it.title)}</b><small>${esc(nm(it.payer))} 先付・分攤：${all?'全員':sp.map(id=>esc(nm(id))).join('、')||'—'}${it.note?'・'+esc(it.note):''}</small></span><span class="rt"><span class="a">${f(+it.amount||0)}</span><span class="eb edit-only"><button type="button" class="mini" data-act="lg-edit-exp" data-id="${it.id}" aria-label="編輯支出">✎</button></span></span></div>`}).join('')}</div>`:'<p class="lg-none">還沒有支出紀錄。</p>'}
     <button type="button" class="add edit-only" data-act="lg-add-exp">＋ 新增支出</button></div>`;
-  box.innerHTML=secHead('ledger','記帳／分帳','記下每筆花費，系統依分攤對象自動算出最後誰該付給誰').replace(/<button[^>]*sec-eye[\s\S]*?<\/button>/,'')+mem+bal+exp+
-    `<button type="button" class="btn sm danger edit-only" style="align-self:flex-start" data-act="lg-off">移除此旅程的記帳分頁</button>`;
+  box.innerHTML=sum+mem+bal+exp+
+    `<button type="button" class="btn sm danger edit-only" style="align-self:flex-start;margin-top:.9rem" data-act="lg-off">移除此旅程的記帳分頁</button>`;
 }
 function ledgerExpForm(it){
   const g=S.ledger;
@@ -1626,9 +1696,9 @@ function renderHome(){
   const box=$('#homeView');if(!box)return;
   const card=t=>{const d=t.data,tr=d.trip,dep=tr.depart?tr.depart.slice(0,10):'',range=dep&&tr.back?`${md(dep)} – ${md(tr.back)}`:'';
     const nd=dep&&tr.back?Math.round((parseD(tr.back)-parseD(dep))/864e5)+1:0;
-    return `<div class="tcard"><button type="button" class="tc-main" data-act="trip" data-id="${t.id}"><span class="e">${(CT[t.country]||CT.其他).e}</span><span class="tc-t"><b>${esc(tr.title||t.name)}</b><small>${esc(t.name)}・${isDom(t)?'國內'+(t.region?'・'+esc(t.region):''):esc(t.country)}</small>${range?`<small>${esc(range)}${nd>0?'（'+nd+' 天）':''}</small>`:''}</span><span class="tc-go" aria-hidden="true">›</span></button>${d.ledger?`<div class="tc-acts"><button type="button" class="btn sm" data-act="open-ledger" data-id="${t.id}">💰 記帳／分帳</button></div>`:''}</div>`};
+    return `<div class="tcard"><button type="button" class="tc-main" data-act="trip" data-id="${t.id}">${destIll(t.country)}<span class="tc-t"><b>${esc(tr.title||t.name)}</b><small>${esc(t.name)}・${isDom(t)?'國內'+(t.region?'・'+esc(t.region):''):esc(t.country)}</small>${range?`<small>${esc(range)}${nd>0?'（'+nd+' 天）':''}</small>`:''}</span><span class="tc-go" aria-hidden="true">›</span></button><div class="tc-acts">${d.ledger?`<button type="button" class="btn sm" data-act="open-ledger" data-id="${t.id}">${SVG.ui.coin}記帳／分帳</button>`:`<button type="button" class="btn sm edit-only" data-act="home-lg-on" data-id="${t.id}">＋ 新增記帳／分帳</button>`}<button type="button" class="btn sm danger edit-only" data-act="home-del" data-id="${t.id}">${SVG.ui.trash}刪除旅程</button></div></div>`};
   const groups=[['國外旅程',ROOT.trips.filter(x=>!isDom(x))],['國內旅程',ROOT.trips.filter(x=>isDom(x))]].filter(g=>g[1].length);
-  box.innerHTML=`<div class="home-h"><h1>🧳 我的旅程</h1></div>${groups.map(g=>`<h3 class="sgrp">${g[0]}</h3><div class="tgrid">${g[1].map(card).join('')}</div>`).join('')||'<p class="nothing">還沒有旅程，按下方新增。</p>'}<button type="button" class="add" data-act="add-trip" style="margin-top:.8rem">＋ 新增旅程</button>`;
+  box.innerHTML=`<div class="home-h"><h1><span class="hi">${SVG.ico.pack}</span>我的旅程</h1></div>${groups.map(g=>`<h3 class="sgrp">${g[0]}</h3><div class="tgrid">${g[1].map(card).join('')}</div>`).join('')||'<p class="nothing">還沒有旅程，按下方新增。</p>'}<button type="button" class="add" data-act="add-trip" style="margin-top:.8rem">＋ 新增旅程</button>`;
 }
 function renderAll(){renderHome();renderTrips();renderHero();renderFlights();renderDays(false);renderTransit();renderExplore();renderHotels();['todo','prep','pack','notes'].forEach(renderList);renderLedger();renderFoot();try{renderNav();applyOrder()}catch(e){}fixGrid();}
 
@@ -1788,6 +1858,8 @@ document.addEventListener('click',e=>{
     case 'rename-cancel':ui.renaming=null;renderTrips();break;
     case 'trip':switchTrip(id);break;
     case 'go-home':setView('home');break;
+    case 'home-lg-on':setAct(id);S=curTrip().data;lgOn(true);break;
+    case 'home-del':{const tt=ROOT.trips.find(x=>x.id===id);if(!tt)break;if(!confirm('確定要刪除「'+tt.name+'」嗎？（刪除後可以按「復原」）'))break;setAct(id);S=curTrip().data;delTrip();break}
     case 'go-trip':setView('trip');break;
     case 'open-ledger':switchTrip(id);setView('ledger');break;
     case 'add-trip':document.body.classList.remove('sideopen');if(!ui.unlocked){askPw(addTrip);break}addTrip();break;
@@ -1940,19 +2012,18 @@ navPref.order=(Array.isArray(navPref.order)?navPref.order:[]).filter(k=>NAVS[k])
 NAV_DEF.forEach(k=>{if(!navPref.order.includes(k))navPref.order.push(k)});
 navPref.hidden=(Array.isArray(navPref.hidden)?navPref.hidden:[]).filter(k=>NAVS[k]);
 function renderNav(){
-  $('#nav').innerHTML='<a href="#top" data-nav="top">封面</a>'+navPref.order.filter(k=>!navOff(k)).map(k=>`<a href="#${k}" data-nav="${k}">${NAVS[k]}</a>`).join('');
+  $('#nav').innerHTML='<a href="#top" data-nav="top" aria-label="封面">·</a>'+navPref.order.filter(k=>!navOff(k)).map(k=>`<a href="#${k}" data-nav="${k}">${NAVS[k]}</a>`).join('');
 }
 function applyOrder(){const main=$('main'),foot=$('#foot');navPref.order.filter(k=>k!=='ledger').forEach(k=>{const el=document.getElementById(k);if(el){main.insertBefore(el,foot);el.hidden=(k==='flights'&&isDom());el.classList.toggle('folded',navPref.hidden.includes(k))}})}
 function refreshNav(){renderNav();applyOrder();fixGrid();applyNav();spyId='';spy()}
-function lgOn(){mutate(()=>{if(!S.ledger)S.ledger={cur:LG_CUR[(curTrip()||{}).country]||'',members:[],items:[]};const i=navPref.hidden.indexOf('ledger');if(i>=0)navPref.hidden.splice(i,1);try{localStorage.setItem(NK,JSON.stringify(navPref))}catch(e){}},'已新增這個旅程的記帳／分帳分頁');refreshNav();setView('ledger')}
+function lgOn(stay){mutate(()=>{if(!S.ledger)S.ledger={cur:LG_CUR[(curTrip()||{}).country]||'',members:[],items:[]};const i=navPref.hidden.indexOf('ledger');if(i>=0)navPref.hidden.splice(i,1);try{localStorage.setItem(NK,JSON.stringify(navPref))}catch(e){}},'已新增這個旅程的記帳／分帳分頁');refreshNav();if(!stay)setView('ledger')}
 function openNavMenu(){
   const n=navPref.order.length;
   const rows=navPref.order.map((k,i)=>{if((k==='flights'&&isDom())||(k==='ledger'&&!S.ledger))return '';return `<li class="orgrow"><span class="txt">${NAVS[k]}</span><span class="eb"><button type="button" class="mini" data-sheet="up" data-k="${k}" aria-label="上移" ${i===0?'disabled':''}>↑</button><button type="button" class="mini" data-sheet="dn" data-k="${k}" aria-label="下移" ${i===n-1?'disabled':''}>↓</button></span></li>`}).join('');
   const redo=()=>{refreshNav();openNavMenu()};
   const move=(b,d)=>{const k=b.dataset.k,i=navPref.order.indexOf(k),j=i+d;if(j<0||j>=n)return;navPref.order.splice(i,1);navPref.order.splice(j,0,k);redo()};
-  openSheet(`<h3 id="sheet-t">選單設定</h3><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem"><button type="button" class="btn sm" data-sheet="pos">選單移到${navPref.pos==='bottom'?'上方':'下方'}</button><button type="button" class="btn sm" data-sheet="hide" aria-label="隱藏整個選單"><span class="eyeb">${SVG.eyeOpen}<span>整個選單</span></span></button>${S.ledger?'':'<button type="button" class="btn sm" data-sheet="lgon">＋ 新增記帳／分帳分頁</button>'}</div><p class="mut">用 ↑↓ 調整順序（頁面內容也會跟著換位置）。想隱藏某個區塊，請按該區塊大標題旁的眼睛圖示。設定只存在這台裝置。</p><ul class="rows orglist">${rows}</ul><div class="sheet-btns" style="margin-top:.8rem"><button type="button" class="btn" data-sheet="reset">還原預設</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
+  openSheet(`<h3 id="sheet-t">選單設定</h3><div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-bottom:.8rem"><button type="button" class="btn sm" data-sheet="pos">選單移到${navPref.pos==='bottom'?'上方':'下方'}</button><button type="button" class="btn sm" data-sheet="hide" aria-label="隱藏整個選單"><span class="eyeb">${SVG.eyeOpen}<span>整個選單</span></span></button></div><p class="mut">用 ↑↓ 調整順序（頁面內容也會跟著換位置）。想隱藏某個區塊，請按該區塊大標題旁的眼睛圖示。設定只存在這台裝置。</p><ul class="rows orglist">${rows}</ul><div class="sheet-btns" style="margin-top:.8rem"><button type="button" class="btn" data-sheet="reset">還原預設</button><span class="sp"></span><button type="button" class="btn primary" data-sheet="close">完成</button></div>`,{
     pos:()=>{navPref.pos=navPref.pos==='bottom'?'top':'bottom';redo()},
-    lgon:()=>{closeSheet();lgOn()},
     hide:()=>{navPref.hide=true;closeSheet();refreshNav();toast('選單已隱藏，點圓形按鈕可以叫回來，按住可以拖曳移動')},
     up:b=>move(b,-1),dn:b=>move(b,1),
     reset:()=>{navPref.order=NAV_DEF.slice();navPref.hidden=[];redo()}
